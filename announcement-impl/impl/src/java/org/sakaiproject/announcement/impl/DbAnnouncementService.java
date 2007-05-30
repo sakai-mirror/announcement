@@ -4,31 +4,32 @@
  ***********************************************************************************
  *
  * Copyright (c) 2003, 2004, 2005, 2006 The Sakai Foundation.
- * 
- * Licensed under the Educational Community License, Version 1.0 (the "License"); 
- * you may not use this file except in compliance with the License. 
+ *
+ * Licensed under the Educational Community License, Version 1.0 (the "License");
+ * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.opensource.org/licenses/ecl1.php
- * 
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, 
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
- * See the License for the specific language governing permissions and 
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  *
  **********************************************************************************/
 
 package org.sakaiproject.announcement.impl;
 
-// import
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.announcement.api.AnnouncementServiceSql;
 import org.sakaiproject.authz.api.AuthzGroup;
 import org.sakaiproject.authz.api.GroupNotDefinedException;
 import org.sakaiproject.authz.api.Role;
@@ -47,6 +48,8 @@ import org.sakaiproject.util.StorageUser;
 import org.sakaiproject.util.Xml;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+
 
 /**
  * <p>
@@ -81,7 +84,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 
 	/**
 	 * Dependency: SqlService.
-	 * 
+	 *
 	 * @param service
 	 *        The SqlService.
 	 */
@@ -92,7 +95,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 
 	/**
 	 * Configuration: set the table name for the container.
-	 * 
+	 *
 	 * @param path
 	 *        The table name for the container.
 	 */
@@ -103,7 +106,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 
 	/**
 	 * Configuration: set the table name for the resource.
-	 * 
+	 *
 	 * @param path
 	 *        The table name for the resource.
 	 */
@@ -114,7 +117,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 
 	/**
 	 * Configuration: set the locks-in-db
-	 * 
+	 *
 	 * @param path
 	 *        The storage path.
 	 */
@@ -128,7 +131,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 
 	/**
 	 * Configuration: run the to-draft/owner conversion
-	 * 
+	 *
 	 * @param value
 	 *        The conversion desired value.
 	 */
@@ -142,7 +145,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 
 	/**
 	 * Configuration: run the to-pubview conversion
-	 * 
+	 *
 	 * @param value
 	 *        The conversion desired value.
 	 */
@@ -156,7 +159,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 
 	/**
 	 * Configuration: to run the ddl on init or not.
-	 * 
+	 *
 	 * @param value
 	 *        the auto ddl value.
 	 */
@@ -164,6 +167,24 @@ public class DbAnnouncementService extends BaseAnnouncementService
 	{
 		m_autoDdl = new Boolean(value).booleanValue();
 	}
+
+   protected Map<String, AnnouncementServiceSql> databaseBeans;               // contains a map of the database dependent beans injected by spring
+   protected AnnouncementServiceSql              announcementServiceSql;      // contains database dependent code
+
+   public void setDatabaseBeans(Map databaseBeans) {
+     this.databaseBeans = databaseBeans;
+   }
+
+   public AnnouncementServiceSql getAnnouncementServiceSql() {
+      return announcementServiceSql;
+   }
+
+   /**
+    * sets which bean containing database dependent code should be used depending on the database vendor.
+    */
+   public void setAnnouncementServiceSql(String vendor) {
+      this.announcementServiceSql = (databaseBeans.containsKey(vendor) ? databaseBeans.get(vendor) : databaseBeans.get("default"));
+   }
 
 	/**********************************************************************************************************************************************************************************************************************************************************
 	 * Init and Destroy
@@ -176,6 +197,8 @@ public class DbAnnouncementService extends BaseAnnouncementService
 	{
 		try
 		{
+         setAnnouncementServiceSql(m_sqlService.getVendor());
+
 			// if we are auto-creating our schema, check and create
 			if (m_autoDdl)
 			{
@@ -213,7 +236,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 
 	/**
 	 * Construct a Storage object.
-	 * 
+	 *
 	 * @return The new storage object.
 	 */
 	protected Storage newStorage()
@@ -230,7 +253,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 	{
 		/**
 		 * Construct.
-		 * 
+		 *
 		 * @param user
 		 *        The StorageUser class to call back for creation of Resource and Edit objects.
 		 */
@@ -352,7 +375,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 			connection.setAutoCommit(false);
 
 			// read all message records that need conversion
-			String sql = "select CHANNEL_ID, MESSAGE_ID, XML from " + m_rTableName /* + " where OWNER is null" */;
+         String sql = announcementServiceSql.getListChannelMessagesSql1(m_rTableName);
 			m_sqlService.dbRead(connection, sql, null, new SqlReader()
 			{
 				private int count = 0;
@@ -383,8 +406,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 						boolean draft = m.getHeader().getDraft();
 
 						// update
-						String update = "update " + m_rTableName
-								+ " set OWNER = ?, DRAFT = ? where CHANNEL_ID = ? and MESSAGE_ID = ?";
+                  String update = announcementServiceSql.getUpdateChannelMessageSql1(m_rTableName);
 						Object fields[] = new Object[4];
 						fields[0] = owner;
 						fields[1] = (draft ? "1" : "0");
@@ -393,8 +415,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 						boolean ok = m_sqlService.dbWrite(connection, update, fields);
 
 						if (!ok)
-							M_log.info("convertToDraft: channel: " + channelId + " message: " + messageId + " owner: " + owner
-									+ " draft: " + draft + " ok: " + ok);
+                     M_log.info("convertToDraft: channel: " + channelId + " message: " + messageId + " owner: " + owner + " draft: " + draft + " ok: " + ok);
 
 						count++;
 						if (count % 100 == 0)
@@ -437,7 +458,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 			connection.setAutoCommit(false);
 
 			// read all message records that need conversion
-			String sql = "select CHANNEL_ID, MESSAGE_ID, XML, PUBVIEW from " + m_rTableName;
+         String sql = announcementServiceSql.getListChannelMessagesSql2(m_rTableName);
 			m_sqlService.dbRead(connection, sql, null, new SqlReader()
 			{
 				public Object readSqlResultRecord(ResultSet result)
@@ -494,7 +515,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 						// update those that have no pubview
 						if (!pubview)
 						{
-							String update = "update " + m_rTableName + " set PUBVIEW = ? where CHANNEL_ID = ? and MESSAGE_ID = ?";
+                     String update = announcementServiceSql.getUpdateChannelMessageSql2(m_rTableName);
 							Object fields[] = new Object[3];
 							fields[0] = "0";
 							fields[1] = channelId;
@@ -502,8 +523,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 							boolean ok = m_sqlService.dbWrite(connection, update, fields);
 
 							if (!ok)
-								M_log.info("convertToPubView: channel: " + channelId + " message: " + messageId + " pubview: "
-										+ pubview + " ok: " + ok);
+                        M_log.info("convertToPubView: channel: " + channelId + " message: " + messageId + " pubview: " + pubview + " ok: " + ok);
 						}
 
 						// update those that have pubview
@@ -517,8 +537,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 							m.toXml(doc, new Stack());
 							xml = Xml.writeDocumentToString(doc);
 
-							String update = "update " + m_rTableName
-									+ " set PUBVIEW = ?, XML = ? where CHANNEL_ID = ? and MESSAGE_ID = ?";
+                     String update = announcementServiceSql.getUpdateChannelMessageSql3(m_rTableName);
 							Object fields[] = new Object[4];
 							fields[0] = "1";
 							fields[1] = xml;
@@ -527,8 +546,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 							boolean ok = m_sqlService.dbWrite(connection, update, fields);
 
 							if (!ok)
-								M_log.info("convertToPubView: channel: " + channelId + " message: " + messageId + " pubview: "
-										+ pubview + " ok: " + ok);
+                        M_log.info("convertToPubView: channel: " + channelId + " message: " + messageId + " pubview: " + pubview + " ok: " + ok);
 						}
 
 						return null;
@@ -554,7 +572,7 @@ public class DbAnnouncementService extends BaseAnnouncementService
 
 	/**
 	 * Does this resource support public view? (Support for the conversion)
-	 * 
+	 *
 	 * @param ref
 	 *        The resource reference
 	 * @return true if this resource supports public view, false if not.

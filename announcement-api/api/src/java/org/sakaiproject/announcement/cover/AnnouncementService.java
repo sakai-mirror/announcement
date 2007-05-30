@@ -32,7 +32,7 @@ import org.sakaiproject.component.cover.ComponentManager;
  * @version $Revision$
  */
 public class AnnouncementService
-{
+{                                                                  
 	/**
 	 * Access the component instance: special cover only method.
 	 * 

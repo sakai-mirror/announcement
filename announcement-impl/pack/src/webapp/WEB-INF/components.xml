@@ -2,36 +2,53 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 
 <beans>
+    <!-- database beans -->
+    <bean id="org.sakaiproject.announcement.impl.AnnouncementServiceSqlDb2"       class="org.sakaiproject.announcement.impl.AnnouncementServiceSqlDb2"     singleton="true"/>
+    <bean id="org.sakaiproject.announcement.impl.AnnouncementServiceSqlDefault"   class="org.sakaiproject.announcement.impl.AnnouncementServiceSqlDefault" singleton="true"/>
+    <bean id="org.sakaiproject.announcement.impl.AnnouncementServiceSqlHSql"      class="org.sakaiproject.announcement.impl.AnnouncementServiceSqlHSql"    singleton="true"/>
+    <bean id="org.sakaiproject.announcement.impl.AnnouncementServiceSqlMsSql"     class="org.sakaiproject.announcement.impl.AnnouncementServiceSqlMsSql"   singleton="true"/>
+    <bean id="org.sakaiproject.announcement.impl.AnnouncementServiceSqlMySql"     class="org.sakaiproject.announcement.impl.AnnouncementServiceSqlMySql"   singleton="true"/>
+    <bean id="org.sakaiproject.announcement.impl.AnnouncementServiceSqlOracle"    class="org.sakaiproject.announcement.impl.AnnouncementServiceSqlOracle"  singleton="true"/>
 
 	<bean id="org.sakaiproject.announcement.api.AnnouncementService"
 			class="org.sakaiproject.announcement.impl.DbAnnouncementService"
 			init-method="init"
 			destroy-method="destroy"
 			singleton="true">
-		<property name="memoryService"><ref bean="org.sakaiproject.memory.api.MemoryService"/></property>
-		<property name="sqlService"><ref bean="org.sakaiproject.db.api.SqlService"/></property>
-		<property name="notificationService"><ref bean="org.sakaiproject.event.api.NotificationService"/></property>
-		<property name="serverConfigurationService"><ref bean="org.sakaiproject.component.api.ServerConfigurationService"/></property>
-		<property name="entityManager"><ref bean="org.sakaiproject.entity.api.EntityManager"/></property>
-		<property name="authzGroupService"><ref bean="org.sakaiproject.authz.api.AuthzGroupService"/></property>
-		<property name="sessionManager"><ref bean="org.sakaiproject.tool.api.SessionManager"/></property>
-		<property name="securityService"><ref bean="org.sakaiproject.authz.api.SecurityService"/></property>
-		<property name="userDirectoryService"><ref bean="org.sakaiproject.user.api.UserDirectoryService"/></property>
-		<property name="timeService"><ref bean="org.sakaiproject.time.api.TimeService"/></property>
-		<property name="eventTrackingService"><ref bean="org.sakaiproject.event.api.EventTrackingService"/></property>
-		<property name="idManager"><ref bean="org.sakaiproject.id.api.IdManager"/></property>
-		<property name="threadLocalManager"><ref bean="org.sakaiproject.thread_local.api.ThreadLocalManager"/></property>
-		<property name="siteService"><ref bean="org.sakaiproject.site.api.SiteService"/></property>
+        <property name="authzGroupService">          <ref bean="org.sakaiproject.authz.api.AuthzGroupService"/>               </property>
+        <property name="entityManager">              <ref bean="org.sakaiproject.entity.api.EntityManager"/>                  </property>
+        <property name="eventTrackingService">       <ref bean="org.sakaiproject.event.api.EventTrackingService"/>            </property>
+        <property name="idManager">                  <ref bean="org.sakaiproject.id.api.IdManager"/>                          </property>
+        <property name="memoryService">              <ref bean="org.sakaiproject.memory.api.MemoryService"/>                  </property>
+        <property name="notificationService">        <ref bean="org.sakaiproject.event.api.NotificationService"/>             </property>
+        <property name="securityService">            <ref bean="org.sakaiproject.authz.api.SecurityService"/>                 </property>
+        <property name="serverConfigurationService"> <ref bean="org.sakaiproject.component.api.ServerConfigurationService"/>  </property>
+        <property name="sessionManager">             <ref bean="org.sakaiproject.tool.api.SessionManager"/>                   </property>
+        <property name="siteService">                <ref bean="org.sakaiproject.site.api.SiteService"/>                      </property>
+        <property name="sqlService">                 <ref bean="org.sakaiproject.db.api.SqlService"/>                         </property>
+        <property name="threadLocalManager">         <ref bean="org.sakaiproject.thread_local.api.ThreadLocalManager"/>       </property>
+        <property name="timeService">                <ref bean="org.sakaiproject.time.api.TimeService"/>                      </property>
+        <property name="userDirectoryService">       <ref bean="org.sakaiproject.user.api.UserDirectoryService"/>             </property>
 
  		<property name="containerTableName"><value>ANNOUNCEMENT_CHANNEL</value></property>
  		<property name="resourceTableName"><value>ANNOUNCEMENT_MESSAGE</value></property>
  		<property name="locksInDb"><value>false</value></property>
  		<property name="autoDdl"><value>${auto.ddl}</value></property>
+        <property name="databaseBeans">
+           <map>
+              <entry key="db2"    ><ref bean="org.sakaiproject.announcement.impl.AnnouncementServiceSqlDb2"    /></entry>
+              <entry key="default"><ref bean="org.sakaiproject.announcement.impl.AnnouncementServiceSqlDefault"/></entry>
+              <entry key="hsqldb" ><ref bean="org.sakaiproject.announcement.impl.AnnouncementServiceSqlHSql"   /></entry>
+              <entry key="mssql"  ><ref bean="org.sakaiproject.announcement.impl.AnnouncementServiceSqlMsSql"  /></entry>
+              <entry key="mysql"  ><ref bean="org.sakaiproject.announcement.impl.AnnouncementServiceSqlMySql"  /></entry>
+              <entry key="oracle" ><ref bean="org.sakaiproject.announcement.impl.AnnouncementServiceSqlOracle" /></entry>
+           </map>
+        </property>
 	</bean>
 
 	<bean id="org.sakaiproject.announcement.impl.SiteEmailNotificationAnnc"
-			class="org.sakaiproject.announcement.impl.SiteEmailNotificationAnnc">
+       class="org.sakaiproject.announcement.impl.SiteEmailNotificationAnnc">
 		<property name="scheduledInvocationManager"><ref bean="org.sakaiproject.api.app.scheduler.ScheduledInvocationManager"/></property>
 	</bean>
-	
+
 </beans>
