@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,6 +46,7 @@ import org.sakaiproject.authz.cover.FunctionManager;
 import org.sakaiproject.authz.cover.SecurityService;
 import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.content.cover.ContentHostingService;
+import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.entity.api.ContextObserver;
 import org.sakaiproject.entity.api.Edit;
 import org.sakaiproject.entity.api.Entity;
@@ -74,6 +76,7 @@ import org.sakaiproject.message.impl.BaseMessageService;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.time.api.Time;
 import org.sakaiproject.time.cover.TimeService;
+import org.sakaiproject.tool.api.Placement;
 import org.sakaiproject.tool.cover.SessionManager;
 import org.sakaiproject.tool.cover.ToolManager;
 import org.sakaiproject.util.ResourceLoader;
@@ -1268,5 +1271,46 @@ public abstract class BaseAnnouncementService extends BaseMessageService impleme
 		} // accept
 
 	} // PrivacyFilter
+
+	public void transferCopyEntities(String fromContext, String toContext, List ids, boolean cleanup)
+	{
+		try
+		{
+			if(cleanup == true)
+			{
+				String channelId = ServerConfigurationService.getString("channel", null);
+				
+				String toSiteId = toContext;
+				
+				if (channelId == null)
+				{
+					channelId = channelReference(toSiteId, SiteService.MAIN_CONTAINER);
+					try
+					{
+						AnnouncementChannel aChannel = getAnnouncementChannel(channelId);
+						
+						List mList = aChannel.getMessages(null, true);
+						
+						for(Iterator iter = mList.iterator(); iter.hasNext();)
+						{
+							AnnouncementMessage msg = (AnnouncementMessage) iter.next();
+							
+							aChannel.removeMessage(msg.getId());
+						}
+					}
+					catch(Exception e)
+					{
+						M_log.debug("Unable to remove Announcements " + e);
+					}
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			M_log.debug("transferCopyEntities: End removing Announcement data");
+		}
+		transferCopyEntities(fromContext, toContext, ids);
+	
+	} 
 
 }
