@@ -1044,6 +1044,21 @@ public class AnnouncementAction extends PagedResourceActionII
 		{
 			context.put("view", sstate.getAttribute(STATE_SELECTED_VIEW));
 		}
+		
+		//need these for RSS 
+		Reference anncRef = AnnouncementService.getAnnouncementReference(ToolManager.getCurrentPlacement().getContext());
+		List aliasList =	AliasService.getAliases( anncRef.getReference() );
+		if ( ! aliasList.isEmpty() )
+		{
+			String alias[] = ((Alias)aliasList.get(0)).getId().split("\\.");
+			context.put("rssAlias", alias[0] );
+		} else {
+			context.put("rssAlias", "announcements" );
+		}
+
+		// Add Announcement RSS URL
+	 
+		context.put("rssUrl", AnnouncementService.getRssUrl( anncRef ) );
 
 		// inform the observing courier that we just updated the page...
 		// if there are pending requests to do so they can be cleared

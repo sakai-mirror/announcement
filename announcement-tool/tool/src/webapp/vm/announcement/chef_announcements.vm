@@ -37,7 +37,7 @@
 		
 
 
-	
+<link rel="alternate" type="application/rss+xml" title="$!rssAlias" href="$!rssUrl" />	
 <div class="portletBody">
 	#if ($isOnWorkspaceTab.equals("false"))
 		#if($menu && $EnabledMenuItemExists)
@@ -63,7 +63,8 @@
 	#end
 	
 	#if ($isOnWorkspaceTab.equals("true")) ##in workspace
-		<h3>$tlang.getString("gen.announcements")</h3>
+		<h3>$tlang.getString("gen.announcements") <a target="_blank" href="$!rssUrl" target="_new_"><img src="/sakai-announcement-tool/images/feed.png" /></a></h3>
+		
 		#if ($alertMessage)<div class="alertMessage">$tlang.getString("gen.alert") $validator.escapeHtml($alertMessage)</div><div class="clear"></div>#end
 ##		#if ($messageListVector.iterator().hasNext())
 		<div class="navPanel">
@@ -385,7 +386,7 @@
 			#if ($toolId == "sakai.announcements") ##In tool or admin MOTD...			
 
 				#if ($displayOptions.isShowAllColumns())
-					<h3>$tlang.getString("gen.announcements")</h3>
+					<h3>$tlang.getString("gen.announcements") <a target="_blank" href="$!rssUrl" target="_new_"><img src="/sakai-announcement-tool/images/feed.png" /></a></h3>
 					#if ($alertMessage)<div class="alertMessage">$tlang.getString("gen.alert") $validator.escapeHtml($alertMessage)</div><div class="clear"></div>#end
 					<div class="navPanel">
 						<div class="viewNav">
@@ -693,7 +694,7 @@
 						</form>
 					#end
 				#else
-					<h3>$tlang.getString("gen.announcements")</h3>
+					<h3>$tlang.getString("gen.announcements") <a target="_blank" href="$!rssUrl" target="_new_"><img src="/sakai-announcement-tool/images/feed.png" /></a></h3>
 					#if ($alertMessage)<div class="alertMessage">$tlang.getString("gen.alert") $validator.escapeHtml($alertMessage)</div><div class="clear"></div>#end
 
 						#if (!$messageListVector.iterator().hasNext())
