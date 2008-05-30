@@ -22,4 +22,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/assignment-api"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/alias-api"/>
 	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" path="/entity-broker"/>
+	<classpathentry kind="var" path="M2_REPO/commons-httpclient/commons-httpclient/3.0/commons-httpclient-3.0.jar"/>
 </classpath>

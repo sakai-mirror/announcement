@@ -21,11 +21,14 @@
 
 package org.sakaiproject.announcement.tool;
 
+import java.io.IOException;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +36,10 @@ import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Stack;
 import java.util.Vector;
+import java.util.Set;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.announcement.api.AnnouncementChannel;
@@ -70,6 +76,7 @@ import org.sakaiproject.entity.api.EntityPropertyTypeException;
 import org.sakaiproject.entity.api.Reference;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.entity.cover.EntityManager;
+import org.sakaiproject.entitybroker.EntityBroker;
 import org.sakaiproject.event.api.NotificationService;
 import org.sakaiproject.event.api.SessionState;
 import org.sakaiproject.exception.IdInvalidException;
@@ -91,6 +98,7 @@ import org.sakaiproject.tool.api.Placement;
 import org.sakaiproject.tool.api.Tool;
 import org.sakaiproject.tool.cover.SessionManager;
 import org.sakaiproject.tool.cover.ToolManager;
+import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserNotDefinedException;
 import org.sakaiproject.user.cover.UserDirectoryService;
 import org.sakaiproject.util.FormattedText;
@@ -103,6 +111,7 @@ import org.sakaiproject.util.SortedIterator;
 import org.sakaiproject.util.StringUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.sakaiproject.authz.api.Member;
 
 /**
  * AnnouncementAction is an implementation of Announcement service, which provides the complete function of announcements. User could check the announcements, create own new and manage all the announcement items, under certain permission check.
@@ -217,6 +226,8 @@ public class AnnouncementAction extends PagedResourceActionII
    private ContentHostingService contentHostingService = null;
    
    private AssignmentService assignmentService = null;
+   
+   private EntityBroker entityBroker;
    
 	/**
 	 * Used by callback to convert channel references to channels.
@@ -2694,6 +2705,7 @@ public class AnnouncementAction extends PagedResourceActionII
 				}
 				
 				// announce to?
+				List<String> recipients = new ArrayList<String>();
 				try
 				{
 					Site site = SiteService.getSite(channel.getContext());
@@ -2716,6 +2728,11 @@ public class AnnouncementAction extends PagedResourceActionII
 					if (announceTo.equals("site"))
 					{
 						header.clearGroupAccess();
+						
+						//Fo Feed
+						for (Member mem : (Set<Member>)site.getMembers()) {
+							recipients.add(mem.getUserId());
+						}
 					}
 					else if (announceTo.equals("groups"))
 					{
@@ -2728,6 +2745,12 @@ public class AnnouncementAction extends PagedResourceActionII
 						{
 							String groupId = (String) iGroups.next();
 							groups.add(site.getGroup(groupId));
+							
+							//Fo Feed
+							Group g = site.getGroup(groupId);
+							for (Member mem : (Set<Member>)g.getMembers()) {
+								recipients.add(mem.getUserId());
+							}
 						}
 
 						// set access
@@ -2760,6 +2783,46 @@ public class AnnouncementAction extends PagedResourceActionII
 				}
 				
 				channel.commitMessage(msg, noti, "org.sakaiproject.announcement.impl.SiteEmailNotificationAnnc");
+				
+				if (entityBroker == null)
+				{
+					entityBroker = (EntityBroker) ComponentManager.get("org.sakaiproject.entitybroker.EntityBroker");
+				}
+				
+				if (entityBroker.entityExists("/feed-entity")) {
+				  	  String url = entityBroker.getEntityURL("/feed-entity/");
+				  	  HttpClient httpClient= new HttpClient();
+				  	  PostMethod postMethod = new PostMethod(url);
+				  	  User from = header.getFrom();
+				  	 
+				  	  if (state.getIsNewAnnouncement()) {
+				  		  postMethod.addParameter("markup", from.getDisplayName() + " created a new announcement: <strong>" + subject + "</strong>");
+				  	  } else {
+				  		postMethod.addParameter("markup", from.getDisplayName() + " revised an announcement: <strong>" + subject + "</strong>");
+				  	  }
+				  	  
+				  	  // use a date which is related to the current users locale
+				  	  DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+				  	  String publishTime = df.format(new Date());
+				  	  if (releaseDate != null) {
+				  		  publishTime = df.format(Date.parse(releaseDate.toStringRFC822Local()));
+				  	  }
+				  	  postMethod.addParameter("publishTimeAsString", publishTime);
+				  	  postMethod.addParameter("context", ToolManager.getCurrentPlacement().getContext()); 
+				  	  postMethod.addParameter("author", "sakai.announcements");
+				  	  postMethod.addParameter("surrogateKey", "");
+
+				  	  for (String recip : recipients) {
+				  		  postMethod.addParameter("recipients", recip);
+				  	  }
+
+				  	  try {
+				  		  httpClient.executeMethod(postMethod);
+				  	  } catch (IOException ioe) {
+				  		  M_log.warn("Unable to post new announcement to feed");
+				  	  }
+
+				}
 
 				if (!state.getIsNewAnnouncement())
 				{
@@ -4553,6 +4616,11 @@ public class AnnouncementAction extends PagedResourceActionII
 		}
 
 	} // releaseState
+
+	public void setEntityBroker(EntityBroker entityBroker)
+	{
+		this.entityBroker = entityBroker;
+	}
 
 	// ******* end of copy from VelocityPortletStateAction
 
