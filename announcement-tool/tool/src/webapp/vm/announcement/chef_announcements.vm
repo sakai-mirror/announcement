@@ -386,7 +386,7 @@
 			#if ($toolId == "sakai.announcements") ##In tool or admin MOTD...			
 
 				#if ($displayOptions.isShowAllColumns())
-					<h3>$tlang.getString("gen.announcements") <a target="_blank" href="$!rssUrl" target="_new_"><img src="/library/image/feed.png /></a></h3>
+					<h3>$tlang.getString("gen.announcements") <a target="_blank" href="$!rssUrl" target="_new_"><img src="/library/image/feed.png" /></a></h3>
 					#if ($alertMessage)<div class="alertMessage">$tlang.getString("gen.alert") $validator.escapeHtml($alertMessage)</div><div class="clear"></div>#end
 					<div class="navPanel">
 						<div class="viewNav">
@@ -694,7 +694,7 @@
 						</form>
 					#end
 				#else
-					<h3>$tlang.getString("gen.announcements") <a target="_blank" href="$!rssUrl" target="_new_"><img src="/library/image/feed.png /></a></h3>
+					<h3>$tlang.getString("gen.announcements") <a target="_blank" href="$!rssUrl" target="_new_"><img src="/library/image/feed.png" /></a></h3>
 					#if ($alertMessage)<div class="alertMessage">$tlang.getString("gen.alert") $validator.escapeHtml($alertMessage)</div><div class="clear"></div>#end
 
 						#if (!$messageListVector.iterator().hasNext())
