@@ -1022,7 +1022,14 @@ public class AnnouncementAction extends PagedResourceActionII
 			Collection groups = channel.getGroupsAllowGetMessage();
 			if (groups != null && groups.size() > 0)
 			{
-				context.put("groups", groups);
+				//context.put("groups", groups);
+				Collection sortedGroups = new Vector();
+
+				for (Iterator i = new SortedIterator(groups.iterator(), new AnnouncementComparator(SORT_GROUPTITLE, true)); i.hasNext();)
+					{
+						sortedGroups.add(i.next());
+					}
+				context.put("groups", sortedGroups);
 			}
 		}
 
@@ -1777,7 +1784,7 @@ public class AnnouncementAction extends PagedResourceActionII
 
 				if (groups.size() > 0)
 				{
-					String sort = (String) sstate.getAttribute(STATE_CURRENT_SORTED_BY);
+					/*String sort = (String) sstate.getAttribute(STATE_CURRENT_SORTED_BY);
 					boolean asc = sstate.getAttribute(STATE_CURRENT_SORT_ASC) != null ? ((Boolean) sstate
 							.getAttribute(STATE_CURRENT_SORT_ASC)).booleanValue() : true;
 					if (sort == null || (!sort.equals(SORT_GROUPTITLE) && !sort.equals(SORT_GROUPDESCRIPTION)))
@@ -1786,9 +1793,10 @@ public class AnnouncementAction extends PagedResourceActionII
 						sstate.setAttribute(STATE_CURRENT_SORTED_BY, sort);
 						state.setCurrentSortedBy(sort);
 						state.setCurrentSortAsc(Boolean.TRUE.booleanValue());
-					}
+					}*/
 					Collection sortedGroups = new Vector();
-					for (Iterator i = new SortedIterator(groups.iterator(), new AnnouncementComparator(sort, asc)); i.hasNext();)
+					//for (Iterator i = new SortedIterator(groups.iterator(), new AnnouncementComparator(sort, asc)); i.hasNext();)
+					for (Iterator i = new SortedIterator(groups.iterator(), new AnnouncementComparator(SORT_GROUPTITLE, true)); i.hasNext();)
 					{
 						sortedGroups.add(i.next());
 					}
