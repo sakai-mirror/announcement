@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-  <classpathentry excluding="**/.DS_Store" kind="src" path="api/src/java"/>
-  <classpathentry sourcepath="JRE_SRC" kind="var" path="JRE_LIB"/>
-  <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
-  <classpathentry combineaccessrules="false" kind="src" path="/message-api"/>
-  <classpathentry combineaccessrules="false" kind="src" path="/entity-api"/>
-  <classpathentry combineaccessrules="false" kind="src" path="/component-api"/>
-  <classpathentry combineaccessrules="false" kind="src" path="/util-api"/>
-  <classpathentry kind="output" path="bin"/>
+	<classpathentry excluding="**/.DS_Store" kind="src" path="api/src/java"/>
+	<classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/sakaiproject/kernel/sakai-kernel-api/1.0RC2-SNAPSHOT/sakai-kernel-api-1.0RC2-SNAPSHOT.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="var" path="M2_REPO/org/sakaiproject/kernel/sakai-component-manager/1.0RC2-SNAPSHOT/sakai-component-manager-1.0RC2-SNAPSHOT.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/message-api"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
