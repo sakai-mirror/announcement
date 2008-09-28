@@ -1,0 +1,18 @@
+<projectDescription>
+  <name>sakai-announcement-impl</name>
+  <comment/>
+  <projects>
+    <project>sakai-announcement-api</project>
+    <project>sakai-message-api</project>
+    <project>sakai-message-impl</project>
+    <project>sakai-scheduler-api</project>
+  </projects>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>
