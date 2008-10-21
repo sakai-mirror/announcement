@@ -2748,8 +2748,9 @@ public class AnnouncementAction extends PagedResourceActionII
 				if (channel.allowRemoveMessage(message))
 				{
 					// remove message from channel
-					AnnouncementMessageEdit edit = channel.editAnnouncementMessage(message.getId());
-					channel.removeMessage(edit);
+					//AnnouncementMessageEdit edit = channel.editAnnouncementMessage(message.getId());
+					//channel.removeMessage(edit); 
+					channel.removeAnnouncementMessage(message.getId());
 
 					// make sure auto-updates are enabled
 					enableObservers(sstate);
@@ -2771,13 +2772,6 @@ public class AnnouncementAction extends PagedResourceActionII
 			catch (NoSuchElementException e)
 			{
 				if (Log.getLogger("chef").isDebugEnabled()) Log.debug("chef", this + "doDeleteannouncement()" + e);
-			}
-			catch (InUseException e)
-			{
-				if (Log.getLogger("chef").isDebugEnabled()) Log.debug("chef", this + "doPost()" + e);
-				// addAlert(sstate, "this announcement is being edited by someone else");
-
-				disableObservers(sstate);
 			}
 		}
 
