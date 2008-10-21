@@ -2774,7 +2774,7 @@ public class AnnouncementAction extends PagedResourceActionII
 			state.setCurrentSortedBy(SORT_DATE);
 			state.setCurrentSortAsc(Boolean.TRUE.booleanValue());
 			sstate.setAttribute(STATE_CURRENT_SORTED_BY, SORT_DATE);
-			sstate.setAttribute(STATE_CURRENT_SORT_ASC, Boolean.TRUE);
+			sstate.setAttribute(STATE_CURRENT_SORT_ASC, Boolean.FALSE);
 
 			// make sure auto-updates are enabled
 			enableObservers(sstate);
@@ -3328,14 +3328,14 @@ public class AnnouncementAction extends PagedResourceActionII
 		state.setCurrentSortedBy(SORT_DATE);
 		state.setCurrentSortAsc(Boolean.TRUE.booleanValue());
 		sstate.setAttribute(STATE_CURRENT_SORTED_BY, SORT_DATE);
-		sstate.setAttribute(STATE_CURRENT_SORT_ASC, Boolean.TRUE);
+		sstate.setAttribute(STATE_CURRENT_SORT_ASC, Boolean.FALSE);
 
 		// we are done with customization... back to the main (list) mode
 		sstate.removeAttribute(STATE_MODE);
 
 		// re-enable auto-updates when going back to list mode
 		enableObservers(sstate);
-
+		
 		try
 		{
 			if (state.getEdit() != null)
