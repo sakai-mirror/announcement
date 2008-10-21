@@ -67,6 +67,7 @@
 			#set($hour = $current_value.breakdownLocal().hour)
 			#set($minute = $current_value.breakdownLocal().min)
 			## TODO: need to add check to determine if am/pm is needed
+			## TODO: need to add check to determine if am/pm is needed
 			#if($hour > 12)
 				#set($hour = $hour - 12)
 				#set($timeType = "pm")
