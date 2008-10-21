@@ -1727,7 +1727,9 @@ public class AnnouncementAction extends PagedResourceActionII
 				}
 				AnnouncementMessageEdit edit = state.getEdit();
 
-				// Get/set release information
+				/*This part is a repetition and not needed
+				  
+				 // Get/set release information
 				Time releaseDate = null;
 				try 
 				{
@@ -1757,6 +1759,7 @@ public class AnnouncementAction extends PagedResourceActionII
 				}
 
 				context.put(RETRACT_DATE, retractDate);
+				*/
 
 				// group list which user can remove message from
 				// TODO: this is almost right (see chef_announcements-revise.vm)... ideally, we would let the check groups that they can add to,
@@ -1812,7 +1815,7 @@ public class AnnouncementAction extends PagedResourceActionII
 		List attachments = state.getAttachments();
 
 		// if this a new annoucement, get the subject and body from temparory record
-		if (state.getIsNewAnnouncement())
+		if (state.getStatus().equals("new"))
 		{
 			context.put("new", "true");
 			context.put("tempSubject", state.getTempSubject());
@@ -1908,6 +1911,64 @@ public class AnnouncementAction extends PagedResourceActionII
 			context.put("new", "true");
 			context.put("tempSubject", state.getTempSubject());
 			context.put("tempBody", state.getTempBody());
+			
+			// Get/set release information
+			Time releaseDate = null;
+			try 
+			{
+				//releaseDate = edit.getProperties().getTimeProperty(RELEASE_DATE);					
+				if (state.getTempReleaseDate()!=null)
+				{
+				releaseDate= state.getTempReleaseDate();
+				context.put("useReleaseDate", Boolean.valueOf(true));
+				context.put(SPECIFY_DATES, true);
+				}
+				else
+				{
+					releaseDate = TimeService.newTime();	
+				context.put("useReleaseDate", Boolean.valueOf(false));
+				}
+			} 
+			catch (Exception e) 
+			{
+				// Set inital release date to creation date
+				releaseDate = TimeService.newTime();
+			} 
+
+			context.put(AnnouncementService.RELEASE_DATE, releaseDate);
+
+			// Get/set retract information
+			Time retractDate = null;
+			try 
+			{
+				if (state.getTempRetractDate()!=null)
+				{
+				retractDate= state.getTempRetractDate();
+				context.put("useRetractDate", Boolean.valueOf(true));
+				context.put(SPECIFY_DATES, true);
+				}
+				else
+				{
+					// Set inital retract date to 60 days from now				
+				final long futureTimeLong = TimeService.newTime().getTime() + MILLISECONDS_IN_DAY * FUTURE_DAYS;			
+				retractDate = TimeService.newTime(futureTimeLong);
+				context.put("useRetractDate", Boolean.valueOf(false));
+				}
+			} 
+			catch (Exception e) 
+			{
+				// Set inital retract date to approx 2 months from today
+				final long futureTimeLong = TimeService.newTime().getTime() + MILLISECONDS_IN_DAY * FUTURE_DAYS;			
+				retractDate = TimeService.newTime(futureTimeLong);
+			}
+
+			context.put(AnnouncementService.RETRACT_DATE, retractDate);
+			
+			if(state.getTempHidden()!=null)
+			{
+				context.put(HIDDEN,state.getTempHidden());
+			} 
+			
 
 			final boolean pubview = Boolean.valueOf((String) sstate.getAttribute(SSTATE_PUBLICVIEW_VALUE)).booleanValue();
 			if (pubview)
@@ -2357,7 +2418,7 @@ public class AnnouncementAction extends PagedResourceActionII
 			int begin_month = params.getInt("release_month");
 			int begin_day = params.getInt("release_day");
 			int begin_hour = hourAmPmConvert(params, "release_hour", "release_ampm");
-			int begin_min = params.getInt("release_min");
+			int begin_min = params.getInt("release_minute");
 			releaseDate = TimeService.newTimeLocal(begin_year, begin_month, begin_day, begin_hour, begin_min, 0, 0);
 
 			state.setTempReleaseDate(releaseDate);
@@ -2373,7 +2434,7 @@ public class AnnouncementAction extends PagedResourceActionII
 			int end_month = params.getInt("retract_month");
 			int end_day = params.getInt("retract_day");
 			int end_hour = hourAmPmConvert(params, "retract_hour", "retract_ampm");
-			int end_min = params.getInt("retract_min");
+			int end_min = params.getInt("retract_minute");
 			retractDate = TimeService.newTimeLocal(end_year, end_month, end_day, end_hour, end_min, 0, 0);
 
 			state.setTempRetractDate(retractDate);
@@ -3158,7 +3219,7 @@ public class AnnouncementAction extends PagedResourceActionII
 		String peid = ((JetspeedRunData) rundata).getJs_peid();
 		SessionState sstate = ((JetspeedRunData) rundata).getPortletSessionState(peid);
 
-		// there is any error message caused by empty subject or boy
+		// there is any error message caused by empty subject or body
 		if (sstate.getAttribute(STATE_MESSAGE) != null)
 		{
 			state.setIsListVM(false);
