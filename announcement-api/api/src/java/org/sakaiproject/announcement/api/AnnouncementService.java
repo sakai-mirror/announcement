@@ -86,7 +86,13 @@ public interface AnnouncementService extends MessageService
 
 	/** Security function giving the user permission to all groups, if granted to at the channel or site level. */
 	public static final String SECURE_ANNC_ALL_GROUPS = SECURE_ANNC_ROOT + SECURE_ALL_GROUPS;
-	
+
+	/** release date property names for announcements        */
+	public static final String RELEASE_DATE = "releaseDate";
+
+	/** retract date property names for announcements        */
+	public static final String RETRACT_DATE = "retractDate";
+
 	/**
 	 * A (AnnouncementChannel) cover for getChannel() to return a specific announcement channel.
 	 * 
