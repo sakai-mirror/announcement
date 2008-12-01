@@ -2778,7 +2778,7 @@ public class AnnouncementAction extends PagedResourceActionII
 			state.setTempAnnounceTo(null);
 			state.setTempAnnounceToGroups(null);
 			state.setCurrentSortedBy(SORT_DATE);
-			state.setCurrentSortAsc(Boolean.TRUE.booleanValue());
+			//state.setCurrentSortAsc(Boolean.TRUE.booleanValue());
 			sstate.setAttribute(STATE_CURRENT_SORTED_BY, SORT_DATE);
 			sstate.setAttribute(STATE_CURRENT_SORT_ASC, Boolean.FALSE);
 
@@ -3332,7 +3332,7 @@ public class AnnouncementAction extends PagedResourceActionII
 		state.setTempAnnounceTo(null);
 		state.setTempAnnounceToGroups(null);
 		state.setCurrentSortedBy(SORT_DATE);
-		state.setCurrentSortAsc(Boolean.TRUE.booleanValue());
+		//state.setCurrentSortAsc(Boolean.TRUE.booleanValue());
 		sstate.setAttribute(STATE_CURRENT_SORTED_BY, SORT_DATE);
 		sstate.setAttribute(STATE_CURRENT_SORT_ASC, Boolean.FALSE);
 
