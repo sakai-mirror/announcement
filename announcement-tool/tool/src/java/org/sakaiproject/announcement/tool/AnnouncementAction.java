@@ -1568,7 +1568,7 @@ public class AnnouncementAction extends PagedResourceActionII
 	 */
 	private List trimListToMaxNumberOfAnnouncements(List messageList, AnnouncementActionState.DisplayOptions options)
 	{
-		if (options.isEnforceNumberOfAnnouncementsLimit())
+		if (options !=null && options.isEnforceNumberOfAnnouncementsLimit())
 		{
 			int numberOfAnnouncements = options.getNumberOfAnnouncements();
 			ArrayList destList = new ArrayList();
