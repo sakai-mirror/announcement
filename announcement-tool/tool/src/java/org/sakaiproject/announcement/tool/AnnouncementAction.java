@@ -2518,8 +2518,10 @@ public class AnnouncementAction extends PagedResourceActionII
 				// addAlert(sstate, "You need to fill in the subject!");
 				addAlert(sstate, rb.getString("java.alert.youneed"));
 			}
-			else if (body.length() == 0)
+			else if (body.replaceAll("<br>", "").replaceAll("<br/>","").replaceAll("&nbsp;", "").replaceAll("&lt;br type=&quot;_moz&quot; /&gt;", "").trim().equals("")  || body.length() == 0 || body == null || 
+					FormattedText.escapeHtml(body,false).equals("&lt;br type=&quot;_moz&quot; /&gt;"))
 			{
+				body="";
 				addAlert(sstate, rb.getString("java.alert.youfill"));// "You need to fill in the body of the announcement!");
 			}
 		}
