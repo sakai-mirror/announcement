@@ -3,7 +3,15 @@
   <classpathentry kind="output" path="target/classes"/>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
   <classpathentry kind="var" path="M2_REPO/junit/junit/3.8.1/junit-3.8.1.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/sakaiproject/kernel/sakai-component-manager/1.0.7/sakai-component-manager-1.0.7.jar"/>
-  <classpathentry kind="var" path="M2_REPO/org/sakaiproject/kernel/sakai-kernel-api/1.0.7/sakai-kernel-api-1.0.7.jar"/>
+  <classpathentry kind="var" path="M2_REPO/org/sakaiproject/kernel/sakai-component-manager/1.0.8/sakai-component-manager-1.0.8.jar" sourcepath="M2_REPO/org/sakaiproject/kernel/sakai-component-manager/1.0.8/sakai-component-manager-1.0.8-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/Users/arwhyte/.m2/repository/org/sakaiproject/kernel/sakai-component-manager/1.0.8/sakai-component-manager-1.0.8-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="M2_REPO/org/sakaiproject/kernel/sakai-kernel-api/1.0.8/sakai-kernel-api-1.0.8.jar" sourcepath="M2_REPO/org/sakaiproject/kernel/sakai-kernel-api/1.0.8/sakai-kernel-api-1.0.8-sources.jar">
+    <attributes>
+      <attribute value="jar:file:/Users/arwhyte/.m2/repository/org/sakaiproject/kernel/sakai-kernel-api/1.0.8/sakai-kernel-api-1.0.8-javadoc.jar!/" name="javadoc_location"/>
+    </attributes>
+  </classpathentry>
   <classpathentry kind="src" path="/sakai-message-api"/>
 </classpath>
