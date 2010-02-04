@@ -22,53 +22,10 @@
  	
 	#if ($alertMessage)<div class="alertMessage">$tlang.getString("gen.alert") $validator.escapeHtml($alertMessage)</div><div class="clear"></div>#end
 	<div class="navPanel">
-		<div class="viewNav">
-			<form name="viewForm" class="inlineForm" method="post" action="#toolForm("$action")">
-				<input type="hidden" name="eventSubmit_doView" value="view" />
-				<label for="view">
-					$tlang.getString("view.label")
-				</label>
-				<span class="skip">$tlang.getString("gen.listnavselect")</span>
-				<select id="view" name="view" size="1" onchange="blur();document.viewForm.submit();" disabled="disabled">
-					<option value="view.all" #if ($!view == "'view.all")selected="selected"#end >$!tlang.getString('view.all')</option>
-					<option value="view.public"  #if ($!view == "view.public")selected="selected"#end >$!tlang.getString('view.public')</option>
-				</select>
-			</form>
-			<br />
 			<span class="instruction">
-				To reorder, drag and drop list items or edit list order numbers. 
+				$tlang.getString('reorder.instruction')
 			</span>
-			<span>&nbsp;</span>
-		</div>
-		<div class="listNav">
-			<div class="instruction">
-				##Savitha:below should indicate that it is "all the announcements"
-				$tlang.getString("gen.viewing") $topMsgPos - $btmMsgPos $tlang.getString("gen.separator") $allMsgNumber $tlang.getString("gen.items")
-			</div>
-			<form name="firstpageForm" class="inlineForm" method="post" action="#toolForm("$action")">
-				<input type="submit" name="eventSubmit_doList_first" value="|&lt;" disabled="disabled" />
-			</form>
-			<form name="prevpageForm" class="inlineForm" method="post" action="#toolForm("$action")">
-					<input type="submit" name="eventSubmit_doList_prev" value="&lt;" disabled="disabled" />
-			</form>
-			<form name="pagesizeForm" class="inlineForm" method="post" action="#toolForm("$action")">
-				<input type="hidden" name="eventSubmit_doChange_pagesize" value="changepagesize" />
-				<select name="selectPageSize" onchange="blur();document.pagesizeForm.submit();" disabled="disabled">
-					<option value="5" #if($pagesize == 5) selected="selected" #end>$tlang.getString("gen.show5")</option>
-					<option value="10" #if($pagesize == 10) selected="selected" #end>$tlang.getString("gen.show10")</option>
-					<option value="20" #if($pagesize == 20) selected="selected" #end>$tlang.getString("gen.show20")</option>
-					<option value="50" #if($pagesize == 50) selected="selected" #end>$tlang.getString("gen.show50")</option>
-					<option value="100" #if($pagesize == 100) selected="selected" #end>$tlang.getString("gen.show100")</option>
-					<option value="200" #if($pagesize == 200) selected="selected" #end>$tlang.getString("gen.show200")</option>
-				</select>
-			</form>
-			<form name="nextpageForm" class="inlineForm" method="post" action="#toolForm("$action")">
-				<input type="submit" name="eventSubmit_doList_next" value="&gt;" disabled="disabled" />
-			</form>
-			<form name="lastpageForm" class="inlineForm" method="post" action="#toolForm("$action")">
-				<input type="submit" name="eventSubmit_doList_last" value="&gt;|" disabled="disabled" />
-			</form>
-		</div>
+			<br /><br />
 	</div> ##end navPanel
 	#if ($messageListVector.iterator().hasNext())	
 		<ul class="itemAction noPrint">
