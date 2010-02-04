@@ -1,11 +1,12 @@
 $(document).ready(function(){
     //get the initial order TODO - make an  array instead of putting the values in a span
+    //remove id from inactive anns, since they cannot be reordered
     $('.inactive').remove();
+	//snapshot of initial order
     $('tbody tr').each(function(n){
         $('#lastMoveArrayInit').append($(this).attr('id') + ' ');
         $('#lastMoveArray').append($(this).attr('id') + ' ');
     });
-    //remove id from inactive anns, since they cannot be reordered
     
     // handle changing the order text field
     $("input[id^=index]").change(function(){
