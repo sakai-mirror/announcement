@@ -87,7 +87,7 @@ var undoLast = function(e){
     lastMovedT = $.trim($('#lastItemMoved').text());
 	lastMoved = $('tr:eq(' + lastMovedT.substr(22) + ')');
 	$(lastMoved).addClass('recentMove');
-    e.preventDefault();
+    //e.preventDefault();
     registerChange('notfluid', lastMoved);
     $('#undo-last-inact').fadeIn('slow');
     $('#undo-last').hide();
@@ -104,7 +104,7 @@ var undoAll = function(e){
         thisRow = document.getElementById(initOrder[z]);
         $(thisRow).appendTo('#announcement-reorder tbody');
     }
-    e.preventDefault();
+    //e.preventDefault();
 	registerChange();
     $('#undo-all').hide();
     $('#undo-all-inact').show();

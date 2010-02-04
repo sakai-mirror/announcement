@@ -81,13 +81,13 @@
 					<a id="undo-all" href="#"  onclick="undoAll(event)" style="display:none">$tlang.getString('reorder.undo.all.label')</a>
 			</li>
 			<li style="display:inline;color:#000">
-			<span id="failedValidMessage" style="display:none">$tlang.getString('reorder.fail.valid.message')</span>
+				<span id="failedValidMessage" style="display:none">$tlang.getString('reorder.fail.valid.message')</span>
 				<span id="messageHolder" class="messageSuccess" style="display:none"> </span>
 			</li>
 		</ul>	
 		<span id="lastMoveArray" style="display:none"></span >
-		<span id="lastMoveArrayInit" ></span> ##style="display:none"
-		<span id="lastItemMoved" style="display:none"></span>
+		<span id="lastMoveArrayInit" style="display:none"></span>
+		<span id="lastItemMoved"  style="display:none"></span>
 		<form name="announcementListForm" action="#toolForm("AnnouncementAction")" method="post">
 			<table id="announcement-reorder"  class="listHier lines nolines" cellspacing="0" summary="$tlang.getString('reorder.table.summary')" >
 							<tbody>
@@ -149,8 +149,7 @@
 						</td>
 						<td headers="subject">
 							<h4>
-								<a href="#toolLinkParam("AnnouncementAction" "doShowmetadata" "itemReference=$validator.escapeUrl($ann_item.reference)")" title="$tlang.getString('gen.viewann') $validator.escapeHtml($ann_item.Header.subject)">
-								$validator.escapeHtml($ann_item.Header.subject)</a>
+								$validator.escapeHtml($ann_item.Header.subject)
 							</h4>	
 						</td>
 						<td headers="author" class="author">
