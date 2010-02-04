@@ -7,7 +7,10 @@ $(document).ready(function(){
         $('#lastMoveArrayInit').append($(this).attr('id') + ' ');
         $('#lastMoveArray').append($(this).attr('id') + ' ');
     });
-    
+	//allow user to click on a field to edit
+    $("input[id^=index]").click(function(event){
+		event.stopPropagation();
+		});
     // handle changing the order text field
     $("input[id^=index]").change(function(){
         // get existing order
