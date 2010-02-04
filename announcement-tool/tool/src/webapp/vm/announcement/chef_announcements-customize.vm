@@ -166,7 +166,7 @@
 		<h4>
 			$tlang.getString("custom.dplimits") 
 		</h4>
-		<p class="shorttext indnt4">
+		<p class="shorttext indnt2">
 			<label for="${displayOptions.getVarNameNumberOfDaysInPast()}EntryField">
 				$tlang.getString("custom.number") 
 			</label>
@@ -178,7 +178,7 @@
 				#end
 			/>
 		</p>
-		<p class="shorttext indnt4">	
+		<p class="shorttext indnt2">	
 			<label for="${displayOptions.getVarNameNumberOfAnnouncements()}EntryField">
 				$tlang.getString("custom.numbann") 
 			</label>
@@ -192,6 +192,12 @@
 				#end
 			/>
 		</p>
+		## Savitha: this controls wether the toolbar link to the reorderer mode is displayed or not
+		<p class="checkbox indnt2">
+			<input type="checkbox" name="customReorderAllowed" id="customReorderAllowed" value="allowReorder" />
+			<label for ="customReorderAllowed">Allow custom reordering of display order</label>
+		</p>
+		
 		<p class="act">
 			<input type="submit" class="active" name="eventSubmit_doUpdate" value="$tlang.getString("gen.update")"  accesskey="s" />
 			<input type="submit" name="eventSubmit_doCancel" value="$tlang.getString("gen.cancel")"  accesskey="x" />

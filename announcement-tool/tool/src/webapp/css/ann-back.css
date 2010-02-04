@@ -1,0 +1,51 @@
+.orderable-default {
+    /*	clash with context
+     background-color: #eee;
+     */
+}
+/*When the mouse cursor hovers over a draggable item, the orderable-hover class is applied. Let's make the background light yellow when that happens:*/
+
+
+.orderable-hover td:first-child {
+}
+/*While an item is being dragged using the mouse, an avatar is created and is given the class orderable-avatar Let's make the avatar a bit see-through:*/
+
+.orderable-drop-marker {
+	background:red;
+	 height: 30px;
+}
+/*The keyboard can also be used to navigate to and move items. Different styles are used for that. The orderable-selected style is used to identify which item currently has focus:*/
+.orderable-selected {
+    background-color: #eee;
+}
+/*The orderable-dragging style is applied when the Control key is pressed, to indicate that the item is being moved:*/
+.orderable-dragging {
+    background-color: orange 
+}
+
+table {
+
+}
+
+td {
+    background: #fff
+}
+
+#todo-list tr {
+    width: 100%;
+/*    display: table; */
+}
+.orderable-hover {
+    /*	clash with context*/
+    /* background-color: lightyellow;*/
+    cursor: move;
+    background: orange 
+}
+.orderable-avatar {
+    /*table rows cannot have a border in IE*/
+    /*	display:block; */
+    border: 1px dotted #ccc;
+		background:red !important;
+    /* 	 width:100% !important
+    opacity: 0.55;*/
+}

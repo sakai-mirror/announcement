@@ -410,6 +410,16 @@
 									##end 
 								</select>
 							</form>
+							## TODO: Savitha - need to detext if there is a set order (created by the reorderer
+							## and inside that - has this set order been affected by a sort operation
+							## and if so -  provide a link to reset the order to the set order AND if user has mantain role, provide a link to reset the order to the normal default order.
+								## if (setOrder) (instructor has set an order with the reorderer)
+									#if (!$currentSortedBy.equals("message_order")) ## user has upset this set order
+										##	a link to return the user to the set order
+										##	a link  void the set order
+									#end
+								## end
+							
 						</div>
 						#if ($messageListVector.iterator().hasNext())
 							<div class="listNav">

@@ -1,0 +1,41 @@
+#todo-list tr{
+    width: 100%;
+}
+
+/*marks a drop zone*/
+.orderable-drop-marker {
+ 	 background: url(../images/drop.gif) center left no-repeat;
+	 width:4em;
+	 height: 30px; /*ok*/
+}
+
+/*hover over a selectable item*/
+.orderable-hover {
+    cursor: move;
+}
+/* item left behind */ 
+ .orderable-dragging {
+	background:#eee;
+	outline:1px dashed #aaa;
+    color:#555 !important
+}
+
+/*item being dragged*/
+.orderable-avatar {
+    opacity: 0.55;
+	background:#bea !important;
+}
+.orderable-avatar td {
+	vertical-align:middle !important;
+	padding:.4em
+}
+
+.orderable-avatar td h4, .orderable-avatar td h5, .orderable-avatar td h6, .orderable-avatar input{
+	padding:0;
+	margin:0;
+}
+
+
+.recentMove{
+	background:orange
+}
