@@ -2,15 +2,22 @@ $(document).ready(function(){
     //get the initial order TODO - make an  array instead of putting the values in a span
     //remove id from inactive anns, since they cannot be reordered
     $('.inactive').remove();
-	//snapshot of initial order
-    $('tbody tr').each(function(n){
+    //snapshot of initial order
+    $('#reorder-list li').each(function(n){
         $('#lastMoveArrayInit').append($(this).attr('id') + ' ');
         $('#lastMoveArray').append($(this).attr('id') + ' ');
     });
-	//allow user to click on a field to edit
+    //allow user to click on a field to edit
     $("input[id^=index]").click(function(event){
-		event.stopPropagation();
-		});
+        event.stopPropagation();
+    });
+    //trap return key
+    $("input[id^=index]").bind("keypress", function(e){
+        var code = e.charCode || e.keyCode;
+        return (code == 13) ? false : true;
+    });
+    
+    
     // handle changing the order text field
     $("input[id^=index]").change(function(){
         // get existing order
@@ -49,21 +56,21 @@ $(document).ready(function(){
         //insert the row in new location - if new value is 1, insert before, if it is the last possible
         // insert after, otherwise insert before or after depending on if it is going up or down
         if (newVal === '1') {
-            $($(this).parents('tr')).insertBefore($(this).parents('tr').siblings('tr').children('td').children('input[value=' + newVal + ']').parents('tr'));
+            $($(this).parents('li')).insertBefore($(this).parents('li').siblings('li').children('span').children('input[value=' + newVal + ']').parents('li'));
         }
         else 
             if (newVal == inputs.length) {
-                $($(this).parents('tr')).insertAfter($(this).parents('tr').siblings('tr').children('td').children('input[value=' + newVal + ']').parents('tr'));
+                $($(this).parents('li')).insertAfter($(this).parents('li').siblings('li').children('span').children('input[value=' + newVal + ']').parents('li'));
             }
             else {
                 if (newVal > oldVal) {
-                    $($(this).parents('tr')).insertAfter($(this).parents('tr').siblings('tr').children('td').children('input[value=' + newVal + ']').parents('tr'));
+                    $($(this).parents('li')).insertAfter($(this).parents('li').siblings('li').children('span').children('input[value=' + newVal + ']').parents('li'));
                 }
                 else {
-                    $($(this).parents('tr')).insertBefore($(this).parents('tr').siblings('tr').children('td').children('input[value=' + newVal + ']').parents('tr'));
+                    $($(this).parents('li')).insertBefore($(this).parents('li').siblings('li').children('span').children('input[value=' + newVal + ']').parents('li'));
                 }
             }
-        registerChange('notfluid', $(this).parents('tr'));
+        registerChange('notfluid', $(this).parents('li'));
     });
     
     // the standard Fluid initialization
@@ -76,7 +83,7 @@ $(document).ready(function(){
             afterMove: registerChange
         }
     };
-    return fluid.reorderList("#announcement-reorder", opts);
+    return fluid.reorderList("#reorder-list", opts);
 });
 
 var undoLast = function(e){
@@ -86,7 +93,7 @@ var undoLast = function(e){
     prevOrder = $.trim($('#lastMoveArray').text()).split(" ");
     for (z in prevOrder) {
         thisRow = document.getElementById(prevOrder[z]);
-        $(thisRow).appendTo('#announcement-reorder tbody');
+        $(thisRow).appendTo('#reorder-list');
     }
     
     lastMovedT = $.trim($('#lastItemMoved').text());
@@ -106,7 +113,7 @@ var undoAll = function(e){
     initOrder = $.trim($('#lastMoveArrayInit').text()).split(" ");
     for (z in initOrder) {
         thisRow = document.getElementById(initOrder[z]);
-        $(thisRow).appendTo('#announcement-reorder tbody');
+        $(thisRow).appendTo('#reorder-list');
     }
     //e.preventDefault();
     registerChange();
@@ -120,7 +127,7 @@ var undoAll = function(e){
 
 // handle things that happen after a move
 var registerChange = function(originEvent, movedEl){
-    var rows = $("tbody tr").size();
+    var rows = $("#reorder-list li").size();
     if (originEvent !== 'notfluid') {
         movedEl = $("tr[aria-selected='true']");
     }
@@ -154,7 +161,7 @@ var registerChange = function(originEvent, movedEl){
 
 var preserveStatus = function(item){
     $('#lastMoveArray').text('');
-    $('tr').each(function(n){
+    $('#reorder-list li').each(function(n){
         if ($(this).attr('id') !== undefined && $(this).attr('id') !== 'undefined_avatar') {
             $('#lastMoveArray').append($(this).attr('id') + ' ');
         }

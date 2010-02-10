@@ -46,141 +46,75 @@
 		<span id="lastMoveArrayInit" style="display:none"></span>
 		<span id="lastItemMoved"  style="display:none"></span>
 		<form name="announcementListForm" action="#toolForm("AnnouncementAction")" method="post">
-			<table id="announcement-reorder"  class="listHier lines nolines" cellspacing="0" summary="$tlang.getString('reorder.table.summary')" border="0">
-							<tbody>
-				<tr>
-				 <th id ="attach" class="attach"></th>
-				 <th id ="attach" class="attach"></th>
-				 <th id ="subject">
+			<div id="reorder-list-sortingToolBar">
+					<span style="white-space:nowrap" class="grabHandle"><input type="text" size="3" value="" id="dummyinput" /></span>
 					#if (!$currentSortedBy.equals("subject"))
-						<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbysubject")';return false;"  title ="$tlang.getString('gen.sortby')">$tlang.getString('gen.subject')</a>
+						<a href="#" class="title" onclick="location='#toolLink("AnnouncementAction" "doSortbysubject")';return false;"  title ="$tlang.getString('gen.sortby')">$tlang.getString('gen.subject')</a>
 					#else
 						#if ($currentSortAsc.equals("true"))
-							<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbysubject")';return false;"  title ="$tlang.getString('gen.sortbyasc')">$tlang.getString('gen.subject') <img src = "#imageLink("sakai/sortascending.gif")" border="0" alt="$tlang.getString('gen.sortbyasc')" /></a>
+							<a href="#"  class="title"  onclick="location='#toolLink("AnnouncementAction" "doSortbysubject")';return false;"  title ="$tlang.getString('gen.sortbyasc')">$tlang.getString('gen.subject') <img src = "#imageLink("sakai/sortascending.gif")" border="0" alt="$tlang.getString('gen.sortbyasc')" /></a>
 						#else
-							<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbysubject")';return false;"  title ="$tlang.getString('gen.sortbydesc')">$tlang.getString('gen.subject') <img src = "#imageLink("sakai/sortdescending.gif")" border="0" alt="$tlang.getString('gen.sortbydesc')"/></a>
+							<a href="#"  class="title" onclick="location='#toolLink("AnnouncementAction" "doSortbysubject")';return false;"  title ="$tlang.getString('gen.sortbydesc')">$tlang.getString('gen.subject') <img src = "#imageLink("sakai/sortdescending.gif")" border="0" alt="$tlang.getString('gen.sortbydesc')"/></a>
 						#end
 					#end
-				</th>
-				<th id="author">
-							#if (!$currentSortedBy.equals("from"))
-								<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbyfrom")';return false;"  title ="$tlang.getString('gen.sortbyauth')">$tlang.getString('gen.from')</a>
-							#else
-								#if ($currentSortAsc.equals("true"))
-									<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbyfrom")';return false;"  title ="$tlang.getString('gen.sortbyauthasc')">$tlang.getString('gen.from') <img src = "#imageLink("sakai/sortascending.gif")" border="0" alt="$tlang.getString('gen.sortbyauthasc')" /></a>
-								#else
-									<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbyfrom")';return false;"  title ="$tlang.getString('gen.sortbyauthdesc')">$tlang.getString('gen.from') <img src = "#imageLink("sakai/sortdescending.gif")" border="0" alt="$tlang.getString('gen.sortbyauthdesc')"/></a>
-								#end
-							#end
-
-					</th>
-					#if ($SiteColumnFlag > 0) ## (there are anns from other sites so show what site they are from)
-						<th id ="Site">
-								#if (!$currentSortedBy.equals("channel"))
-									<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbychannel")';return false;"  title ="$tlang.getString('gen.sortchannel')">$tlang.getString('gen.site')</a>
-								#else
-									#if ($currentSortAsc.equals("true"))
-										<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbychannel")';return false;"  title ="$tlang.getString('gen.sortchanasc')">$tlang.getString('gen.site') <img src = "#imageLink("sakai/sortascending.gif")" border="0" alt="$tlang.getString('gen.sortchanasc')" /></a>
-									#else
-										<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbychannel")';return false;"  title ="$tlang.getString('gen.sortchandesc')">$tlang.getString('gen.site') <img src = "#imageLink("sakai/sortdescending.gif")" border="0" alt="$tlang.getString('gen.sortchandesc')" /></a>
-									#end
-								#end
-
-						</th>
+					#if (!$currentSortedBy.equals("from"))
+						<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbyfrom")';return false;"  title ="$tlang.getString('gen.sortbyauth')">$tlang.getString('gen.from')</a>
+					#else
+						#if ($currentSortAsc.equals("true"))
+							<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbyfrom")';return false;"  title ="$tlang.getString('gen.sortbyauthasc')">$tlang.getString('gen.from') <img src = "#imageLink("sakai/sortascending.gif")" border="0" alt="$tlang.getString('gen.sortbyauthasc')" /></a>
+						#else
+							<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbyfrom")';return false;"  title ="$tlang.getString('gen.sortbyauthdesc')">$tlang.getString('gen.from') <img src = "#imageLink("sakai/sortdescending.gif")" border="0" alt="$tlang.getString('gen.sortbyauthdesc')"/></a>
+						#end
 					#end
-							<th id ="date">
-								#if (!$currentSortedBy.equals("date"))
-									<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbydate")';return false;"  title="$tlang.getString('gen.sortbydate')">$tlang.getString('gen.date')</a>
-								#else
-									#if ($currentSortAsc.equals("true"))
-										 <a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbydate")';return false;"  title="$tlang.getString('gen.sortbydateasc')">$tlang.getString('gen.date')<img src = "#imageLink("sakai/sortascending.gif")" border="0" alt="$tlang.getString('gen.sortbydateasc')" /></a>
-									#else
-										<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbydate")';return false;"  title="$tlang.getString('gen.sortbydatedesc')">$tlang.getString('gen.date') <img src = "#imageLink("sakai/sortdescending.gif")" border="0" alt ="$tlang.getString('gen.sortbydatedesc')" /></a>
-									#end
-								#end
-							</th>
-					<th id="releaseDate">
-						$tlang.getString("gen.releasedate")
-					</th>
-					<th id="retractDate">
-						$tlang.getString("gen.retractdate")
-					</th>
-					<th></th>
-				</tr>
+					#if (!$currentSortedBy.equals("date"))
+						<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbydate")';return false;"  title="$tlang.getString('gen.sortbydate')">$tlang.getString('gen.date')</a>
+					#else
+						#if ($currentSortAsc.equals("true"))
+							 <a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbydate")';return false;"  title="$tlang.getString('gen.sortbydateasc')">$tlang.getString('gen.date')<img src = "#imageLink("sakai/sortascending.gif")" border="0" alt="$tlang.getString('gen.sortbydateasc')" /></a>
+						#else
+							<a href="#" onclick="location='#toolLink("AnnouncementAction" "doSortbydate")';return false;"  title="$tlang.getString('gen.sortbydatedesc')">$tlang.getString('gen.date') <img src = "#imageLink("sakai/sortdescending.gif")" border="0" alt ="$tlang.getString('gen.sortbydatedesc')" /></a>
+						#end
+					#end
+				</div>
+				<ul id="reorder-list">
 
-				#set($count = 1)
+				#set($count = 0)
 				#foreach ($ann_item in $showMessagesList)
 					#set($ann_item_props=$ann_item.getProperties())
-					<tr #rowTRconstruct($ann_item_props $displayOptions $ann_item.Header.draft) id="announcement.orderable$count">
-						<td headers="numberField" class="attach grabHandle" style="white-space:nowrap">
-							<input type="text" size="3" value="$count" id="index$count"/>
+					<li #rowTRconstruct($ann_item_props $displayOptions $ann_item.Header.draft) id="announcement.orderable$count">
+						<span style="white-space:nowrap" class="grabHandle">
+							<input type="text" size="3" value="$count" id="index$count" style="z-index:5"/>
 							<input type="hidden" size="3" id="holder$count"  value="$count"/>
-						</td>	
-							<td headers="attach" class="attach">
-							## show the paperclip if existing
-							#set ($size = 0)
-							#if (!$ann_item.Header.Attachments.isEmpty())
-								#set ($props = false)
-								#set ($size = $ann_item.Header.Attachments.size())
-								#foreach ($attachment in $ann_item.Header.Attachments)
-									#set ($props = $attachment.Properties)
-									#if (!$props)
-											#if ($size > 0) #set ($size = $size - 1) #end
-									#end
-								#end
-							#end
-							#if ($size == 0)
-								&nbsp;
-							#else
-								<img src = "#imageLink("sakai/attachments.gif")" border="0" alt="$tlang.getString('gen.attach')" />
-							#end
-						</td>
-						<td headers="subject">
-							<h4>
-								$validator.escapeHtml($ann_item.Header.subject)
-							</h4>	
-						</td>
-						<td headers="author" class="author">
+						</span>	
+						<span class="title">
+							$validator.escapeHtml($ann_item.Header.subject)
+						</span>
+						<span class="author">
 							$validator.escapeHtml($ann_item.Header.From.DisplayName)
-						</td>
+						</span>
 							#if ($EnableItemCheckBoxes)
 								#if ($SiteColumnFlag > 0)
-									<td headers="channel">asdasd
+									<span class="channel">asdasd
 										$validator.escapeHtml($ann_item.channelDisplayName)
-									</td>
+									</span>
 								#end
 							#end
-						<td class="range">
+						<span class="range">
 							$!ann_item.getRange()
-						</td>
-						<td headers="date" class="date"> 
+						</span>
+						<span  class="date"> 
 							$ann_item.Header.Date.toStringLocalFull()
-						</td>
-						<td headers="releaseDate" class="releaseDate">
-							#if (!$ann_item_props.isEmpty() && $ann_item_props.getProperty("releaseDate"))
-									$ann_item_props.getTimeProperty("releaseDate").toStringLocalFull()
-							#else
-								&nbsp;
-							#end
-						</td>
-						<td headers="retractDate" class="retractDate">
-						#if (!$ann_item_props.isEmpty() && $ann_item_props.getProperty("retractDate"))
-								$ann_item_props.getTimeProperty("retractDate").toStringLocalFull()
-						#else
-							&nbsp;
-						#end
-						</td>
+						</span>
 						#set ($ref = $entityManager.newReference($ann_item.Reference))
 						#set ($origChannelRef = $service.channelReference($ref.Context,$ref.Container))
 						##For Re-ordering of Announcement Messages
-							<td> 
-									<input type="checkbox" id="check-$rowCount" name="selectedMembers2" checked="checked" value="$ann_item.Reference" style="display:none"/>
-							</td>
-					</tr>
+							<span class="skip"> 
+								<input type="checkbox" id="check-$rowCount" name="selectedMembers2" checked="checked" value="$ann_item.Reference"/>
+							</span>
+					</li>
 								#set($count = $count + 1)
 				#end
-			</tbody>
-		</table>
+		</ul>
 	<p class="act">
 		<input type="submit" class="active" name="eventSubmit_doReorderUpdate" value="$tlang.getString("gen.update")"  accesskey="s" />
 		<input type="submit" accesskey="x" name="eventSubmit_doCancel" value="$tlang.getString("gen.cancel")" />

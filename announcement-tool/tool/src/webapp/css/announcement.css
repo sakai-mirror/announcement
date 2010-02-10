@@ -1,64 +1,74 @@
-#announcement-reorder tr {
-    width: 100%;
-	border-top:1px solid #fff;
-	border-bottom:1px solid #fff;
-}
- #announcement-reorder td.grabHandle {
-	padding-left:20px;
-	background: url(../images/grab.png) top left repeat-y
-	}
-#announcement-reorder tr.inactive td.grabHandle {	
-	background:none;
-}
-.orderable-hover td.grabHandle{
-	background: url(../images/grabh.png) top left repeat-y !important
-	}
- .recentMove td.grabHandle{
-	background: url(../images/grabh.png) top left repeat-y !important
-	}
 
-/*marks a drop zone*/
+#reorder-list-sortingToolBar{
+	border:1px solid #ccc;
+	background:#ffe;
+	margin:1em 0;
+	padding:5px;
+	width:80%
+}
+#reorder-list-sortingToolBar a{
+}
+#reorder-list {
+	margin:0;
+	padding:0;
+	width:80%
+}
+#reorder-list li {
+	list-style:none;
+	padding:5px;
+	margin:5px 0;
+	background:#eee;
+	border:1px solid #ddd;
+	width: 100%;
+}
+#reorder-list li span.grabHandle, #reorder-list-sortingToolBar span.grabHandle{
+	display:block;
+	float:left;
+	width:4em;
+	padding-right:0;
+}
+#reorder-list li span.grabHandle input{
+	margin-top:-2px;
+}
+#reorder-list-sortingToolBar span.grabHandle input{
+	visibility:hidden;
+}
+
+#reorder-list li .title, #reorder-list-sortingToolBar a.title{
+	display:block;
+	float:left;
+	width:45%;
+	}
+#reorder-list li span, #reorder-list-sortingToolBar a{
+	padding-right:2em;
+}
+
 .orderable-selected{
-	border:none;
-	outline:none
+	border: none; outline: none
 }
+/*marks a drop zone*/
 .orderable-drop-marker {
-    width: 50%;
-	border:1px solid #ccc !important;
-    height: 30px; /*ok*/
+	/*width: 50%;*/
+	height: 30px; /*ok*/
+	background:#fff !important;
+	border:1px dashed #ccc !important
 }
-
-/*hover over a selectable item*/ .orderable-hover {
-    cursor: move;
+.orderable-hover {
+	/*hover over a selectable item*/ 
+	cursor: move 
 }
-
-.inactive{
-   cursor:text;	
+.orderable-dragging {
+	/* item left behind */
+	background: #fff;
+	color: #555 !important
 }
-/* item left behind */ .orderable-dragging {
-    background: #eee;
-    outline: 1px dashed #aaa;
-    color: #555 !important
+.orderable-avatar {
+	/*item being dragged*/ 
+	opacity: 0.55;
+	list-style:none;
+	background: #bea !important;
+	width: 50% !important
 }
-
-/*item being dragged*/ .orderable-avatar {
-    opacity: 0.55;
-    background: #bea !important;
-	width:50% !important;
-} 
-.orderable-avatar td {
-    vertical-align: middle !important;
-    padding: .4em
-}
- .orderable-avatar td.date,  .orderable-avatar td.releaseDate,.orderable-avatar td.retractDate, .orderable-avatar td.range, .orderable-avatar input{
- 	display:none
- }  
- .orderable-avatar td h4, .orderable-avatar td h5, .orderable-avatar td h6, .orderable-avatar td.author {
-    padding: 0;
-    margin: 0;
-    font-weight:bold;
-    padding-right:3em;
-	
-} .recentMove {
-    background: #def
-}
+.orderable-avatar * {display: none }
+.orderable-avatar .title {display:block;margin:5px;font-weight: bold;font-size:1.2em }
+.recentMove { background: #def }
