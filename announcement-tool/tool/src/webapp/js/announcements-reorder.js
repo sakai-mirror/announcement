@@ -17,6 +17,39 @@ $(document).ready(function(){
         return (code == 13) ? false : true;
     });
     
+    $('#undo-all').click(function(event){
+        var initOrder;
+        initOrder = $.trim($('#lastMoveArrayInit').text()).split(" ");
+        for (z in initOrder) {
+            thisRow = document.getElementById(initOrder[z]);
+            $(thisRow).appendTo('#reorder-list');
+        }
+        
+        event.preventDefault();
+        registerChange();
+        $('#undo-all').hide();
+        $('#undo-all-inact').show();
+        $('#undo-last-inact').show();
+        $('#undo-last').hide();
+    });
+    $('#undo-last').click(function(event){
+        var prevOrder;
+        var lastMovedT;
+        var lastMoved;
+        prevOrder = $.trim($('#lastMoveArray').text()).split(" ");
+        for (z in prevOrder) {
+            thisRow = document.getElementById(prevOrder[z]);
+            $(thisRow).appendTo('#reorder-list');
+        }
+        lastMovedT = $.trim($('#lastItemMoved').text());
+        lastMoved = $('tr:eq(' + lastMovedT.substr(20) + ')');
+        $(lastMoved).addClass('recentMove');
+        event.preventDefault();
+        registerChange('notfluid', lastMoved);
+        $('#undo-last-inact').fadeIn('slow');
+        $('#undo-last').hide();
+    });
+    
     
     // handle changing the order text field
     $("input[id^=index]").change(function(){
@@ -85,44 +118,6 @@ $(document).ready(function(){
     };
     return fluid.reorderList("#reorder-list", opts);
 });
-
-var undoLast = function(e){
-    var prevOrder;
-    var lastMovedT;
-    var lastMoved;
-    prevOrder = $.trim($('#lastMoveArray').text()).split(" ");
-    for (z in prevOrder) {
-        thisRow = document.getElementById(prevOrder[z]);
-        $(thisRow).appendTo('#reorder-list');
-    }
-    
-    lastMovedT = $.trim($('#lastItemMoved').text());
-    lastMoved = $('tr:eq(' + lastMovedT.substr(22) + ')');
-    $(lastMoved).addClass('recentMove');
-    //e.preventDefault();
-    registerChange('notfluid', lastMoved);
-    $('#undo-last-inact').fadeIn('slow');
-    $('#undo-last').hide();
-    
-    
-    
-};
-
-var undoAll = function(e){
-    var initOrder;
-    initOrder = $.trim($('#lastMoveArrayInit').text()).split(" ");
-    for (z in initOrder) {
-        thisRow = document.getElementById(initOrder[z]);
-        $(thisRow).appendTo('#reorder-list');
-    }
-    //e.preventDefault();
-    registerChange();
-    $('#undo-all').hide();
-    $('#undo-all-inact').show();
-    $('#undo-last-inact').show();
-    $('#undo-last').hide();
-    
-};
 
 
 // handle things that happen after a move

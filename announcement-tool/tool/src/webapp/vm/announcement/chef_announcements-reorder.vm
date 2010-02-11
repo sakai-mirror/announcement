@@ -18,7 +18,7 @@
 			#set ($SiteColumnFlag = $SiteColumnFlag + 1)
 		#end
 	#end
-	<h3>$tlang.getString("gen.reorder")</h3>
+	<h3>$tlang.getString("reorder.title")</h3>
  	
 	#if ($alertMessage)<div class="alertMessage">$tlang.getString("gen.alert") $validator.escapeHtml($alertMessage)</div><div class="clear"></div>#end
 	<div class="navPanel">
@@ -31,11 +31,11 @@
 		<ul class="itemAction noPrint">
 			<li style="display:inline">
 				<span id="undo-last-inact" style="padding:0 .3em 0 0;border:none">$tlang.getString('reorder.undo.last.label')</span>
-				<a href="#" id="undo-last" onclick="undoLast(event)" style="display:none">$tlang.getString('reorder.undo.last.label')</a>
+				<a href="#" id="undo-last"  style="display:none">$tlang.getString('reorder.undo.last.label')</a>
 			</li>
 			<li style="display:inline;border-left:1px solid #ccc;padding-left:1em">
 				<span id="undo-all-inact"  style="padding:0 .3em 0 0;border:none">$tlang.getString('reorder.undo.all.label')</span>
-					<a id="undo-all" href="#"  onclick="undoAll(event)" style="display:none">$tlang.getString('reorder.undo.all.label')</a>
+					<a id="undo-all" href="#"   style="display:none">$tlang.getString('reorder.undo.all.label')</a>
 			</li>
 			<li style="display:inline;color:#000">
 				<span id="failedValidMessage" style="display:none">$tlang.getString('reorder.fail.valid.message')</span>
@@ -87,20 +87,10 @@
 							<input type="hidden" size="3" id="holder$count"  value="$count"/>
 						</span>	
 						<span class="title">
-							$validator.escapeHtml($validator.limit($ann_item.Header.subject, 50))
+							$validator.escapeHtml($validator.limit($ann_item.Header.subject, 45))
 						</span>
 						<span class="author">
 							$validator.escapeHtml($ann_item.Header.From.DisplayName)
-						</span>
-							#if ($EnableItemCheckBoxes)
-								#if ($SiteColumnFlag > 0)
-									<span class="channel">asdasd
-										$validator.escapeHtml($ann_item.channelDisplayName)
-									</span>
-								#end
-							#end
-						<span class="range">
-							$!ann_item.getRange()
 						</span>
 						<span  class="date"> 
 							$ann_item.Header.Date.toStringLocalFull()
