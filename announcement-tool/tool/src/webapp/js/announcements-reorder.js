@@ -122,9 +122,10 @@ $(document).ready(function(){
 
 // handle things that happen after a move
 var registerChange = function(originEvent, movedEl){
+
     var rows = $("#reorder-list li").size();
     if (originEvent !== 'notfluid') {
-        movedEl = $("tr[aria-selected='true']");
+        movedEl = $("li[aria-selected='true']");
     }
     
     $('#lastItemMoved').text($(movedEl).attr('id'));
@@ -149,7 +150,7 @@ var registerChange = function(originEvent, movedEl){
     $(movedEl).animate({
         opacity: 1.0
     }, 2000, function(){
-        $(movedEl).removeClass('recentMove');
+		$(movedEl).removeClass('recentMove');
     });
 };
 

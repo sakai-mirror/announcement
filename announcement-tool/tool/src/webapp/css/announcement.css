@@ -63,7 +63,9 @@
 .orderable-dragging {
 	/* item left behind */
 	background: #fff;
-	color: #555 !important
+	color: #555 !important;
+	border:1px dashed #aaa !important;
+	outline:none;
 }
 .orderable-avatar {
 	/*item being dragged*/ 
@@ -74,4 +76,4 @@
 }
 .orderable-avatar * {display: none }
 .orderable-avatar .title {display:block;margin:5px;font-weight: bold;font-size:1.2em }
-.recentMove { background: #def }
+.recentMove { background: #def !important;border:1px solid #7bf !important}
