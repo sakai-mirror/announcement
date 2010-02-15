@@ -1,4 +1,9 @@
 $(document).ready(function(){
+	if ($("#reorder-list li").size() - 1 >  15){
+		$('.grabHandle').show();
+		$('#inputFieldMessage').show();
+	}
+	
     //get the initial order TODO - make an  array instead of putting the values in a span
     //remove id from inactive anns, since they cannot be reordered
     $('.inactive').remove();
@@ -122,7 +127,6 @@ $(document).ready(function(){
 
 // handle things that happen after a move
 var registerChange = function(originEvent, movedEl){
-
     var rows = $("#reorder-list li").size();
     if (originEvent !== 'notfluid') {
         movedEl = $("li[aria-selected='true']");
