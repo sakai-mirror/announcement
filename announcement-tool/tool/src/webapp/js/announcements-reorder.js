@@ -62,16 +62,23 @@ $(document).ready(function(){
         var that = this;
         preserveStatus();
         // the new value in the text field
-        var newVal = this.value;
-        //what the value was (plucked from a hidden input)
-        var oldVal = $(this).siblings('input[id^=holder]').attr('value');
+        var oldVal = parseInt($(this).siblings('input[id^=holder]').attr('value'));
+        // the new value in the text field
+        var newVal = parseInt(this.value);
         if (isNaN(newVal) || newVal > $("input[id^=index]").size()) {
             var failedValidMessage = $('#failedValidMessage').text();
             $('#messageHolder').text(failedValidMessage.replace('#', $('input[id^=index]').size()));
             $('.orderable-selected').removeClass('orderable-selected');
             $('#messageHolder').removeClass('messageSuccess');
             $('#messageHolder').addClass('messageValidation');
-            $('#messageHolder').fadeIn('slow');
+			var messagePos = $(that).position();			
+			$("#messageHolder").css({
+				'position':'absolute',
+				'height':'1.3em',
+				'top':messagePos.top,
+				'left':55
+			});
+			$('#messageHolder').fadeIn('slow');
             $("#messageHolder").animate({
                 opacity: 1.0
             }, 2000, function(){
