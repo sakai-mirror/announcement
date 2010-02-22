@@ -25,7 +25,7 @@
 			<span class="instruction">
 				$tlang.getString('reorder.instruction.general')
 				<span id="inputFieldMessage" style="display:none">$tlang.getString('reorder.instruction.input')</span>
-				<span class="skip">$tlang.getString('reorder.instruction.general.hidden')</span>
+				<span id="inputKbdMessage" class="skip">$tlang.getString('reorder.instruction.general.hidden')</span>
 				$tlang.getString('reorder.instruction.special')
 			</span>
 			<br /><br />
@@ -86,7 +86,7 @@
 				#foreach ($ann_item in $showMessagesList)
 					#set($ann_item_props=$ann_item.getProperties())
 					<li #rowTRconstruct($ann_item_props $displayOptions $ann_item.Header.draft) id="announcement.orderable$count">
-						<span style="display:none" class="grabHandle">
+							<span style="display:none" class="grabHandle">
 							<input type="text" size="3" value="$count" id="index$count" style="z-index:5"/>
 							<input type="hidden" size="3" id="holder$count"  value="$count"/>
 						</span>	
