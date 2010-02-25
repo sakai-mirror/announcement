@@ -918,6 +918,7 @@ public class AnnouncementAction extends PagedResourceActionII
 		boolean menu_new = true;
 		boolean menu_delete = true;
 		boolean menu_revise = true;
+		boolean menu_reorder = true;
  
 		try
 		{
@@ -4023,7 +4024,7 @@ public class AnnouncementAction extends PagedResourceActionII
 		
 		//re-orderer link in the announcementlist view
 		//if ((state.getStatus()!="showMetadata")||
-		if ((state.getStatus()!="reorder")&&(state.getStatus()!="showMetadata"))
+		if (menu_new && state.getStatus()!="reorder" && state.getStatus()!="showMetadata")
 		{
 		bar.add(new MenuEntry(rb.getString("java.reorder"), REORDER_BUTTON_HANDLER));
 		}
