@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry including="**/*.java" kind="src" path="src/java"/>
+	<classpathentry excluding="**/*.java" including="**/*.sql" kind="src" path="src/sql"/>
+	<classpathentry excluding="**/*.java" including="**/*.properties" kind="src" path="src/bundle"/>
+	<classpathentry kind="var" path="M2_REPO/javax/servlet/servlet-api/2.4/servlet-api-2.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="var" path="M2_REPO/junit/junit/3.8.1/junit-3.8.1.jar"/>
+	<classpathentry kind="src" path="/sakai-announcement-api"/>
+	<classpathentry kind="var" path="M2_REPO/org/sakaiproject/kernel/sakai-component-manager/1.2.0-SNAPSHOT/sakai-component-manager-1.2.0-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/sakaiproject/kernel/sakai-kernel-api/1.2.0-SNAPSHOT/sakai-kernel-api-1.2.0-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/sakaiproject/kernel/sakai-kernel-util/1.2.0-SNAPSHOT/sakai-kernel-util-1.2.0-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/sakaiproject/sakai-message-api/2.8-SNAPSHOT/sakai-message-api-2.8-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/org/sakaiproject/sakai-message-impl/2.8-SNAPSHOT/sakai-message-impl-2.8-SNAPSHOT.jar" sourcepath="/msg-impl"/>
+	<classpathentry kind="var" path="M2_REPO/org/sakaiproject/scheduler/scheduler-api/2.8-SNAPSHOT/scheduler-api-2.8-SNAPSHOT.jar"/>
+	<classpathentry kind="var" path="M2_REPO/xerces/xercesImpl/2.6.2/xercesImpl-2.6.2.jar"/>
+	<classpathentry kind="var" path="M2_REPO/xerces/xmlParserAPIs/2.6.2/xmlParserAPIs-2.6.2.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
