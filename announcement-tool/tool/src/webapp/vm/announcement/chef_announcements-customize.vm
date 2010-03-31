@@ -103,7 +103,7 @@
 			<label for ="rssAlias">
 				$tlang.getString("custom.rss_alias")
 			</label>
-			<input type="text" name="rssAlias" id="rssAlias" value="$!rssAlias" />
+			<input type="text" name="rssAlias" id="rssAlias" maxlength="40" 	value="$!rssAlias" />
 		</p>
 		
 		<p class="shorttext indnt2">
@@ -191,11 +191,6 @@
 					value=""
 				#end
 			/>
-		</p>
-		## Savitha: this controls wether the toolbar link to the reorderer mode is displayed or not
-		<p class="checkbox indnt2">
-			<input type="checkbox" name="customReorderAllowed" id="customReorderAllowed" value="allowReorder" />
-			<label for ="customReorderAllowed">Allow custom reordering of display order</label>
 		</p>
 		
 		<p class="act">
