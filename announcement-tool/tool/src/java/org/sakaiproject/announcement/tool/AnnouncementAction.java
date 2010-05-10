@@ -3940,6 +3940,8 @@ public class AnnouncementAction extends PagedResourceActionII
 	{
 		Menu bar = new MenuImpl(portlet, rundata, "AnnouncementAction");
 		boolean buttonRequiringCheckboxesPresent = false;
+		Properties placementProperties = ToolManager.getCurrentPlacement().getPlacementConfig();
+		String sakaiReorderProperty= ServerConfigurationService.getString("sakai.announcement.reorder", "false");
 
 		//if (!displayOptions.isShowOnlyOptionsButton()) ##SAK-13434
 		if (displayOptions != null && !displayOptions.isShowOnlyOptionsButton())
@@ -3991,10 +3993,14 @@ public class AnnouncementAction extends PagedResourceActionII
 		} // if-else (!displayOptions.isShowOnlyOptionsButton())
 		
 		//re-orderer link in the announcementlist view
-		//if ((state.getStatus()!="showMetadata")||
-		if (menu_new && state.getStatus()!="reorder" && state.getStatus()!="showMetadata")
+		if (sakaiReorderProperty.equalsIgnoreCase("true") && menu_new && state.getStatus()!="reorder" && state.getStatus()!="showMetadata")
 		{
-		bar.add(new MenuEntry(rb.getString("java.reorder"), REORDER_BUTTON_HANDLER));
+			bar.add(new MenuEntry(rb.getString("java.reorder"), REORDER_BUTTON_HANDLER));
+		}
+		else if ((placementProperties.containsKey("enableReorder") && placementProperties.getProperty("enableReorder").equalsIgnoreCase("true")) 
+				&& menu_new && state.getStatus()!="reorder" && state.getStatus()!="showMetadata")
+		{
+			bar.add(new MenuEntry(rb.getString("java.reorder"), REORDER_BUTTON_HANDLER));
 		}
 
 		// add options if allowed
