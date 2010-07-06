@@ -1979,7 +1979,7 @@ public class AnnouncementAction extends PagedResourceActionII
 			String notification = (String) sstate.getAttribute(SSTATE_NOTI_VALUE);
 			// "r", "o" or "n"
 			context.put("noti", notification);
-
+ 
 		}
 		// if this is an existing one
 		else if (state.getStatus().equals("goToReviseAnnouncement"))
@@ -2038,6 +2038,17 @@ public class AnnouncementAction extends PagedResourceActionII
 			context.put(SPECIFY_DATES, specify);
 			context.put(HIDDEN, edit.getHeader().getDraft());
 			// there is no chance to get the notification setting at this point
+			
+			//output notification history
+			List notiHistory= state.getEdit().getProperties().getPropertyList("noti_history");
+			if (notiHistory!=null){
+			List noti_history=new ArrayList();
+			for(Iterator it = notiHistory.iterator(); it.hasNext();){
+			noti_history.add(it.next().toString().split("_"));
+			}			
+			context.put("notiHistory", noti_history);
+			}
+
 		}
 		else
 		// if state is "backToRevise"
@@ -2114,6 +2125,17 @@ public class AnnouncementAction extends PagedResourceActionII
 			String notification = (String) sstate.getAttribute(SSTATE_NOTI_VALUE);;
 			// "r", "o" or "n"
 			context.put("noti", notification);
+			
+			//output notification history
+			List notiHistory= state.getEdit().getProperties().getPropertyList("noti_history");
+			if (notiHistory!=null){
+			List noti_history=new ArrayList();
+			for(Iterator it = notiHistory.iterator(); it.hasNext();){
+			noti_history.add(it.next().toString().split("_"));
+			}			
+			context.put("notiHistory", noti_history);
+			}
+
 		}
 
 		context.put("attachments", attachments);
@@ -2878,9 +2900,14 @@ public class AnnouncementAction extends PagedResourceActionII
 				// save notification level if this is a future notification message
 				Time now = TimeService.newTime();
 				
-				if (releaseDate != null && now.before(releaseDate) && noti != NotificationService.NOTI_NONE)
+				if (releaseDate != null && now.before(releaseDate))// && noti != NotificationService.NOTI_NONE)
 				{
 					msg.getPropertiesEdit().addProperty("notificationLevel", notification);
+					msg.getPropertiesEdit().addPropertyToList("noti_history", noti+"_"+now.toStringLocalFull()+"_"+releaseDate.toStringLocalFull());
+				}
+				else if (!msg.getAnnouncementHeaderEdit().getDraft())// && noti != NotificationService.NOTI_NONE ){
+				{
+					msg.getPropertiesEdit().addPropertyToList("noti_history", noti+"_"+now.toStringLocalFull());
 				}
 				
 				channel.commitMessage(msg, noti, "org.sakaiproject.announcement.impl.SiteEmailNotificationAnnc");
