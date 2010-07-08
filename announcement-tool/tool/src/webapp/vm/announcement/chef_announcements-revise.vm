@@ -470,42 +470,43 @@ function resizeFrame(){
 		
 		#if ($notiHistory)
 			<div class="specialLink"><a href="#" class="indnt2 specialLink" id="notiHistoryToggle">$tlang.getString("revise.notify.ver_link")</a></div>
-			<table class="listHier indnt2" id="notiHistory" border="0" style="width:auto;display:none" cellpadding="0" cellspacing="0" >
-			<tr><th>$tlang.getString("revise.notify.ver_title")</th><th colspan="2">$tlang.getString("revise.notify.ver_dateposted")</th></tr>
+			<table class="listHier indnt2" id="notiHistory" border="0" style="width:auto" cellpadding="0" cellspacing="0" >
+			<tr><th>$tlang.getString("revise.notify.ver_daterevisedtitle")</th><th>$tlang.getString("revise.notify.ver_typetitle")</th><th>$tlang.getString("revise.notify.ver_datereleasedtitle")</th></tr>
 			 #foreach ($notiEvent in $notiHistory)
 				<tr>
 					#set($notiEventCount = 0)
 					#foreach ($notiEventItem in $notiEvent)
-						#if ($notiEventCount ==0 )
-							<td class="textPanelFooter">
-							#if($notiEventItem =="0")
-								$tlang.getString("revise.notify.short_none")
-								#set($notiEventType = 0)
-							#elseif($notiEventItem =="1")
-								$tlang.getString("revise.notify.short_high")
-								#set($notiEventType = 1)
-							#else
-								$tlang.getString("revise.notify.short_low")
-								#set($notiEventType = 2)
-							#end
-							</td>
-
-						#else
-							<td class="textPanelFooter">
-								#if ($notiEventCount ==1 )
-									$notiEventItem
+						#if ($notiEventCount ==0)
+							<td>$notiEventItem</td>
+						#elseif ($notiEventCount ==1)
+							<td>
+								#if($notiEventItem =="0")
+									$tlang.getString("revise.notify.short_none")
+									#set($notiEventType = 0)
+								#elseif($notiEventItem =="1")
+									$tlang.getString("revise.notify.short_high")
+									#set($notiEventType = 1)
+								#elseif($notiEventItem =="2")
+									$tlang.getString("revise.notify.short_low")
+									#set($notiEventType = 2)
 								#else
-									#if($notiEventType == 0)
-										$tlang.getString("revise.notify.ver.dated_future") $notiEventItem
-									#else
-										$tlang.getString("revise.notify.ver.dateds_future") $notiEventItem
-									#end
+									<span class="highlight">$tlang.getString("revise.notify.draft")</span>
+									#set($notiEventType = 3)
 								#end
-						</td>	
+							</td>
+						#else
+							<td>
+								#if($notiEventType == 0)
+									$tlang.getString("revise.notify.ver.dated_future") $notiEventItem
+								#elseif($notiEventType == 1 || $notiEventType == 2)
+									$tlang.getString("revise.notify.ver.dateds_future") $notiEventItem
+								#end
+							</td>
 					#end	
-							#set($notiEventCount = $notiEventCount + 1)
-					#end
-				</tr>	
+					#set($notiEventCount = $notiEventCount + 1)
+				#end
+			</tr>	
+
 			 #end	
 
 			</table>
