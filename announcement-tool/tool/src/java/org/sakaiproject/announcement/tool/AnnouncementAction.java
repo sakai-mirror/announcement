@@ -2903,11 +2903,11 @@ public class AnnouncementAction extends PagedResourceActionII
 				if (releaseDate != null && now.before(releaseDate))// && noti != NotificationService.NOTI_NONE)
 				{
 					msg.getPropertiesEdit().addProperty("notificationLevel", notification);
-					msg.getPropertiesEdit().addPropertyToList("noti_history", noti+"_"+now.toStringLocalFull()+"_"+releaseDate.toStringLocalFull());
+					msg.getPropertiesEdit().addPropertyToList("noti_history", now.toStringLocalFull()+"_"+noti+"_"+releaseDate.toStringLocalFull());
 				}
 				else if (!msg.getAnnouncementHeaderEdit().getDraft())// && noti != NotificationService.NOTI_NONE ){
 				{
-					msg.getPropertiesEdit().addPropertyToList("noti_history", noti+"_"+now.toStringLocalFull());
+					msg.getPropertiesEdit().addPropertyToList("noti_history", now.toStringLocalFull()+"_"+noti);
 				}
 				
 				channel.commitMessage(msg, noti, "org.sakaiproject.announcement.impl.SiteEmailNotificationAnnc");
