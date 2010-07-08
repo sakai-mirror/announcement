@@ -2900,14 +2900,18 @@ public class AnnouncementAction extends PagedResourceActionII
 				// save notification level if this is a future notification message
 				Time now = TimeService.newTime();
 				
+				int notiLevel=noti;
+				if (msg.getAnnouncementHeaderEdit().getDraft()){
+					notiLevel=3; //Set notilevel as 3 if it a hidden announcement, as no notification is sent regardless of the notification option
+				}
+				
 				if (releaseDate != null && now.before(releaseDate))// && noti != NotificationService.NOTI_NONE)
 				{
 					msg.getPropertiesEdit().addProperty("notificationLevel", notification);
-					msg.getPropertiesEdit().addPropertyToList("noti_history", now.toStringLocalFull()+"_"+noti+"_"+releaseDate.toStringLocalFull());
+					msg.getPropertiesEdit().addPropertyToList("noti_history", now.toStringLocalFull()+"_"+notiLevel+"_"+releaseDate.toStringLocalFull());
 				}
-				else if (!msg.getAnnouncementHeaderEdit().getDraft())// && noti != NotificationService.NOTI_NONE ){
-				{
-					msg.getPropertiesEdit().addPropertyToList("noti_history", now.toStringLocalFull()+"_"+noti);
+				else {
+					msg.getPropertiesEdit().addPropertyToList("noti_history", now.toStringLocalFull()+"_"+notiLevel);
 				}
 				
 				channel.commitMessage(msg, noti, "org.sakaiproject.announcement.impl.SiteEmailNotificationAnnc");
