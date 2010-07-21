@@ -29,6 +29,7 @@ import org.sakaiproject.entitybroker.entityprovider.capabilities.RESTful;
 import org.sakaiproject.entitybroker.entityprovider.extension.Formats;
 import org.sakaiproject.entitybroker.entityprovider.search.Restriction;
 import org.sakaiproject.entitybroker.entityprovider.search.Search;
+import org.sakaiproject.entitybroker.exception.EntityNotFoundException;
 import org.sakaiproject.entitybroker.util.AbstractEntityProvider;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.PermissionException;
@@ -41,6 +42,7 @@ import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.MergedList;
 import org.sakaiproject.util.MergedListEntryProviderBase;
 import org.sakaiproject.util.MergedListEntryProviderFixedListWrapper;
+import org.sakaiproject.util.ResourceLoader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -59,8 +61,11 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	// hours * minutes * seconds * milliseconds
 	private static final long MILLISECONDS_IN_DAY = (24 * 60 * 60 * 1000);
 	private static final Log log = LogFactory.getLog(AnnouncementEntityProviderImpl.class);
+	private static ResourceLoader rb = new ResourceLoader("announcement");
 	
-	
+	/**
+	 * Prefix for this provider
+	 */
 	public String getEntityPrefix() {
 		return ENTITY_PREFIX;
 	}
@@ -79,11 +84,8 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 			motdView = true;
 		}
 		
-		//get currentUserId for permissions checks, not needed for motdView
+		//get currentUserId for permissions checks, although unused for motdView
 		String currentUserId = sessionManager.getCurrentSessionUserId();
-		if(StringUtils.isBlank(currentUserId) && !motdView){
-			return dAnnouncements;
-		}
 		
 		try {
 
@@ -258,9 +260,28 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
     public List<DecoratedAnnouncement> getAnnouncementsForSite(EntityView view, Map<String, Object> params) {
 		String siteId = view.getPathSegment(2);
         
+		//check siteId supplied
         if (StringUtils.isBlank(siteId)) {
-            throw new IllegalArgumentException("siteId must be set in order to get the announcements for a site, via /announcement/site/siteId");
+            throw new IllegalArgumentException("siteId must be set in order to get the announcements for a site, via the URL /announcement/site/siteId");
         }
+        
+        //check user is logged in
+        String userId = sessionManager.getCurrentSessionUserId();
+    	if (StringUtils.isBlank(userId)) {
+    		throw new SecurityException("You must be logged in to get your announcements.");
+    	}
+        
+        //check this is a valid site
+        if(!siteService.siteExists(siteId)) {
+			throw new EntityNotFoundException("Invalid siteId: ", siteId);
+		}
+        
+        //check this user has site.visit permissions for this site.
+        //whether or not the user can see any announcements is checked later
+        if(!securityService.unlock(userId, SiteService.SITE_VISIT, siteService.siteReference(siteId))) {
+        	throw new SecurityException("You do not have access to site: " + siteId);
+        }
+        
         List<DecoratedAnnouncement> l = getAnnouncements(siteId);
         return l;
     }
@@ -280,7 +301,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
         //in the case of a user, this is the My Workspace siteId for that user (as an internal user id)
         String siteId = siteService.getUserSiteId(userId);
         if(StringUtils.isBlank(siteId)) {
-    		throw new IllegalArgumentException("No valid siteId was found for userId: " + userId);
+    		throw new IllegalArgumentException("No siteId was found for userId: " + userId);
         }
         
         List<DecoratedAnnouncement> l = getAnnouncements(siteId);
@@ -293,6 +314,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	@EntityCustomAction(action="motd",viewKey=EntityView.VIEW_LIST)
     public List<DecoratedAnnouncement> getMessagesOfTheDay(EntityView view, EntityReference ref) {
         
+		//MOTD announcements are published to a special site
         List<DecoratedAnnouncement> l = getAnnouncements(MOTD_SITEID);
         return l;
     }
@@ -393,8 +415,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	 * If so, they will be able to view messages that are hidden
 	 */
 	private boolean canViewHidden(AnnouncementMessage msg, String siteId) {
-		final boolean b = securityService.unlock(AnnouncementService.SECURE_READ_DRAFT, msg.getReference()) || securityService.unlock(UPDATE_PERMISSIONS, "/site/"+ siteId); 
-		return b;
+		return (securityService.unlock(AnnouncementService.SECURE_READ_DRAFT, msg.getReference()) || securityService.unlock(UPDATE_PERMISSIONS, "/site/"+ siteId)); 
 	}
 	
 	
@@ -522,7 +543,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 				Site site;
 				try {
 					if(motdView) {
-						messageList.add(new WrappedAnnouncement(message, currentChannel.getContext(), "MOTD"));
+						messageList.add(new WrappedAnnouncement(message, currentChannel.getContext(), rb.getString("motd.title")));
 					} else {
 						site = siteService.getSite(currentChannel.getContext());
 						messageList.add(new WrappedAnnouncement(message, currentChannel.getContext(), site.getTitle()));
