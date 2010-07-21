@@ -257,67 +257,68 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	 * site/siteId
 	 */
 	@EntityCustomAction(action="site",viewKey=EntityView.VIEW_LIST)
-    public List<DecoratedAnnouncement> getAnnouncementsForSite(EntityView view, Map<String, Object> params) {
+	public List<DecoratedAnnouncement> getAnnouncementsForSite(EntityView view, Map<String, Object> params) {
+		
 		String siteId = view.getPathSegment(2);
         
 		//check siteId supplied
-        if (StringUtils.isBlank(siteId)) {
-            throw new IllegalArgumentException("siteId must be set in order to get the announcements for a site, via the URL /announcement/site/siteId");
-        }
-        
-        //check user is logged in
-        String userId = sessionManager.getCurrentSessionUserId();
-    	if (StringUtils.isBlank(userId)) {
-    		throw new SecurityException("You must be logged in to get your announcements.");
-    	}
-        
-        //check this is a valid site
-        if(!siteService.siteExists(siteId)) {
-			throw new EntityNotFoundException("Invalid siteId: ", siteId);
+		if (StringUtils.isBlank(siteId)) {
+			throw new IllegalArgumentException("siteId must be set in order to get the announcements for a site, via the URL /announcement/site/siteId");
 		}
         
-        //check this user has site.visit permissions for this site.
-        //whether or not the user can see any announcements is checked later
-        if(!securityService.unlock(userId, SiteService.SITE_VISIT, siteService.siteReference(siteId))) {
-        	throw new SecurityException("You do not have access to site: " + siteId);
-        }
+		//check user is logged in
+		String userId = sessionManager.getCurrentSessionUserId();
+		if (StringUtils.isBlank(userId)) {
+			throw new SecurityException("You must be logged in to get your announcements.");
+		}
         
-        List<DecoratedAnnouncement> l = getAnnouncements(siteId);
-        return l;
+		//check this is a valid site
+		if(!siteService.siteExists(siteId)) {
+			throw new EntityNotFoundException("Invalid siteId: ", siteId);
+		}
+
+		//check this user has site.visit permissions for this site.
+		//whether or not the user can see any announcements is checked later
+		if(!securityService.unlock(userId, SiteService.SITE_VISIT, siteService.siteReference(siteId))) {
+			throw new SecurityException("You do not have access to site: " + siteId);
+		}
+
+		List<DecoratedAnnouncement> l = getAnnouncements(siteId);
+		return l;
     }
 	
 	/**
 	 * user
 	 */
 	@EntityCustomAction(action="user",viewKey=EntityView.VIEW_LIST)
-    public List<DecoratedAnnouncement> getAnnouncementsForUser(EntityView view, EntityReference ref) {
-		
-        String userId = sessionManager.getCurrentSessionUserId();
-    	if (StringUtils.isBlank(userId)) {
-    		throw new SecurityException("You must be logged in to get your announcements.");
-    	}
-       
-        //we still need a siteId since Announcements keys it's data on a channel reference created from a siteId.
-        //in the case of a user, this is the My Workspace siteId for that user (as an internal user id)
-        String siteId = siteService.getUserSiteId(userId);
-        if(StringUtils.isBlank(siteId)) {
-    		throw new IllegalArgumentException("No siteId was found for userId: " + userId);
-        }
-        
-        List<DecoratedAnnouncement> l = getAnnouncements(siteId);
-        return l;
+	public List<DecoratedAnnouncement> getAnnouncementsForUser(EntityView view, EntityReference ref) {
+
+		String userId = sessionManager.getCurrentSessionUserId();
+		if (StringUtils.isBlank(userId)) {
+			throw new SecurityException("You must be logged in to get your announcements.");
+		}
+
+		//we still need a siteId since Announcements keys it's data on a channel reference created from a siteId.
+		//in the case of a user, this is the My Workspace siteId for that user (as an internal user id)
+		String siteId = siteService.getUserSiteId(userId);
+		if(StringUtils.isBlank(siteId)) {
+			throw new IllegalArgumentException("No siteId was found for userId: " + userId);
+		}
+
+		List<DecoratedAnnouncement> l = getAnnouncements(siteId);
+		return l;
     }
 	
 	/**
 	 * motd
 	 */
 	@EntityCustomAction(action="motd",viewKey=EntityView.VIEW_LIST)
-    public List<DecoratedAnnouncement> getMessagesOfTheDay(EntityView view, EntityReference ref) {
-        
+	public List<DecoratedAnnouncement> getMessagesOfTheDay(EntityView view, EntityReference ref) {
+
 		//MOTD announcements are published to a special site
-        List<DecoratedAnnouncement> l = getAnnouncements(MOTD_SITEID);
-        return l;
-    }
+		List<DecoratedAnnouncement> l = getAnnouncements(MOTD_SITEID);
+		return l;
+	}
 
 	
 	/**
@@ -420,7 +421,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	
 	
 	
-	/*
+	/**
 	 * Callback class so that we can form references in a generic way.
 	 */
 	private final class AnnouncementChannelReferenceMaker implements MergedList.ChannelReferenceMaker {
