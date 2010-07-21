@@ -48,7 +48,9 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 
 	public final static String ENTITY_PREFIX = "announcement";
 	
-	private static final String PORTLET_CONFIG_PARM_MERGED_CHANNELS = "mergedAnnouncementChannels";
+	private static final String PORTLET_CONFIG_PARAM_MERGED_CHANNELS = "mergedAnnouncementChannels";
+	private static final String MOTD_SITEID = "!site";
+	private static final String MOTD_CHANNEL_SUFFIX = "motd";
 	public static int DEFAULT_DISPLAY_NUMBER_OPTION = 3;
 	private static final String UPDATE_PERMISSIONS = "site.upd";
 	private static final String varNameNumberOfDaysInPast = "days";
@@ -65,32 +67,21 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 
 	
 	/**
-	 * Get the list of announcements.
-	 * <p>
-	 * If searching on a <b>siteId</b>, search should have a property 'siteId' with value=siteId.<br />
-	 * If searching on a <b>userId</b>, search should have a property 'userId' with value=userId.<br />
-	 * If both are empty, this will return an empty list, as this is an invalid state.
-	 * </p>
-	 * 
-	 * <p>{@inheritDoc}</p>
+	 * Get the list of announcements for a site (or user site, or !site for motd)
 	 */
-	public List<?> getEntities(EntityReference ref, Search search) {
+	public List<DecoratedAnnouncement> getAnnouncements(String siteId) {
 		
 		List<DecoratedAnnouncement> dAnnouncements = new ArrayList<DecoratedAnnouncement>();
 		
-		String siteId = null;
-		
-		//get the siteId, this will be set for both site and user lookups.
-		if (!search.isEmpty()) {
-			Restriction res = search.getRestrictionByProperty("siteId");
-			if(res != null){
-				siteId = res.getStringValue();
-			}
+		//check if we are loading the MOTD
+		boolean motdView = false;
+		if(StringUtils.equals(siteId, MOTD_SITEID)) {
+			motdView = true;
 		}
 		
-		//get currentUserId for permissions checks
+		//get currentUserId for permissions checks, not needed for motdView
 		String currentUserId = sessionManager.getCurrentSessionUserId();
-		if(StringUtils.isBlank(currentUserId)){
+		if(StringUtils.isBlank(currentUserId) && !motdView){
 			return dAnnouncements;
 		}
 		
@@ -104,6 +95,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 				}
 				
 				log.debug("workspaceView: " + workspaceView);
+				log.debug("motdView: " + motdView);
 				log.debug("siteId: " + siteId);
 				log.debug("currentUserId: " + currentUserId);
 
@@ -112,23 +104,40 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 				List<AnnouncementMessage> messageList = new ArrayList<AnnouncementMessage>();
 				MergedList mergedAnnouncementList = new MergedList();
 
-				// TODO - MERGE FIX
 				String[] channelArrayFromConfigParameterValue = null;	
 
-				String channelId = announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
+				//create the channelId
+				String channelId = null;
+				if(motdView) {
+					channelId = announcementService.channelReference(siteId, MOTD_CHANNEL_SUFFIX);
+				} else {
+					channelId = announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
+				}
+				
+				log.debug("channel: " + channelId);
+
+				//get the channels
 				AnnouncementChannel defaultChannel;
 				try {
 					defaultChannel = announcementService.getAnnouncementChannel(channelId);
 
-					//MY WORKSPACE SYNOPTIC VIEW
 					Site site = null;
 					String initMergeList = null;
+					ToolConfiguration tc = null;
+					ToolConfiguration synopticTc = null;
+					
+					if(!motdView) {
+						
+						//get site
+						site = siteService.getSite(siteId);
 
-					site = siteService.getSite(siteId);
-					ToolConfiguration tc = site.getToolForCommonId("sakai.announcements");
+						//get tool properties for sakai.announcements in this site
+						tc = site.getToolForCommonId("sakai.announcements");
+					}
+						
 					if (tc != null){
 						//Properties ps= tc.getPlacementConfig();
-						initMergeList = tc.getPlacementConfig().getProperty(PORTLET_CONFIG_PARM_MERGED_CHANNELS);	
+						initMergeList = tc.getPlacementConfig().getProperty(PORTLET_CONFIG_PARAM_MERGED_CHANNELS);	
 					}
 
 					if (!securityService.isSuperUser() && workspaceView) {
@@ -136,6 +145,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 					} else {
 						channelArrayFromConfigParameterValue = mergedAnnouncementList.getChannelReferenceArrayFromDelimitedString(channelId, initMergeList);
 					}
+					
 
 					mergedAnnouncementList.loadChannelsFromDelimitedString(
 							workspaceView, 
@@ -156,8 +166,11 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 					boolean enforceDays = true;
 					int maxNumberOfDaysInThePastProp = numberOfDaysInThePast;
 
-					//set up properties
-					ToolConfiguration synopticTc = site.getToolForCommonId("sakai.synoptic.announcement");
+					if(!motdView) {
+						//get properties for synoptic tool in this site
+						synopticTc = site.getToolForCommonId("sakai.synoptic.announcement");
+					}
+					
 					if(synopticTc != null){
 						Properties props = synopticTc.getPlacementConfig();
 						if(props.isEmpty()) {
@@ -177,9 +190,8 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 					}
 
 
-					Iterator channelsIt = mergedAnnouncementList.iterator();
-
-					while (channelsIt.hasNext()) {
+					//get messages in each channel
+					for (Iterator channelsIt = mergedAnnouncementList.iterator(); channelsIt.hasNext();) {
 						MergedList.MergedEntry curEntry = (MergedList.MergedEntry) channelsIt.next();
 
 						// If this entry should not be merged, skip to the next one.
@@ -201,7 +213,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 						if (curChannel != null) {
 							if (announcementService.allowGetChannel(curChannel.getReference())) {
 								try {
-									messageList.addAll(wrapList(curChannel.getMessages(null, true), curChannel, defaultChannel, maxNumberOfDaysInThePastProp, enforceDays));
+									messageList.addAll(wrapList(curChannel.getMessages(null, true), curChannel, defaultChannel, maxNumberOfDaysInThePastProp, enforceDays, motdView));
 								} catch (PermissionException e) {
 									e.printStackTrace();
 								}
@@ -233,7 +245,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 				}
 
 			} catch (Exception e) {
-				log.warn("Exeption: AnnouncementEntityProviderImpl: getEntities: userEid: " + currentUserId, e);
+				log.warn("Exception: AnnouncementEntityProviderImpl: getEntities: userEid: " + currentUserId, e);
 			}
 		
     	return dAnnouncements;
@@ -243,13 +255,13 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	 * site/siteId
 	 */
 	@EntityCustomAction(action="site",viewKey=EntityView.VIEW_LIST)
-    public List<?> getAnnouncementsForSite(EntityView view, Map<String, Object> params) {
+    public List<DecoratedAnnouncement> getAnnouncementsForSite(EntityView view, Map<String, Object> params) {
 		String siteId = view.getPathSegment(2);
         
         if (StringUtils.isBlank(siteId)) {
             throw new IllegalArgumentException("siteId must be set in order to get the announcements for a site, via /announcement/site/siteId");
         }
-        List<?> l = getEntities(new EntityReference(ENTITY_PREFIX, ""), new Search("siteId", siteId));
+        List<DecoratedAnnouncement> l = getAnnouncements(siteId);
         return l;
     }
 	
@@ -257,21 +269,31 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	 * user
 	 */
 	@EntityCustomAction(action="user",viewKey=EntityView.VIEW_LIST)
-    public List<?> getAnnouncementsForUser(EntityView view, EntityReference ref) {
+    public List<DecoratedAnnouncement> getAnnouncementsForUser(EntityView view, EntityReference ref) {
 		
         String userId = sessionManager.getCurrentSessionUserId();
     	if (StringUtils.isBlank(userId)) {
-    		throw new IllegalArgumentException("userId could not be determined from either the URL or the current session");
+    		throw new SecurityException("You must be logged in to get your announcements.");
     	}
        
         //we still need a siteId since Announcements keys it's data on a channel reference created from a siteId.
         //in the case of a user, this is the My Workspace siteId for that user (as an internal user id)
         String siteId = siteService.getUserSiteId(userId);
         if(StringUtils.isBlank(siteId)) {
-    		throw new IllegalArgumentException("siteId could not be found for userId: " + userId);
+    		throw new IllegalArgumentException("No valid siteId was found for userId: " + userId);
         }
         
-        List<?> l = getEntities(new EntityReference(ENTITY_PREFIX, ""), new Search("siteId", siteId));
+        List<DecoratedAnnouncement> l = getAnnouncements(siteId);
+        return l;
+    }
+	
+	/**
+	 * motd
+	 */
+	@EntityCustomAction(action="motd",viewKey=EntityView.VIEW_LIST)
+    public List<DecoratedAnnouncement> getMessagesOfTheDay(EntityView view, EntityReference ref) {
+        
+        List<DecoratedAnnouncement> l = getAnnouncements(MOTD_SITEID);
         return l;
     }
 
@@ -302,16 +324,13 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	/**
 	 * Utility routine used to get an integer named value from a map or supply a default value if none is found.
 	 */
-	private int getIntegerParameter(Map params, String paramName, int defaultValue)
-	{
+	private int getIntegerParameter(Map params, String paramName, int defaultValue) {
 		String intValString = (String) params.get(paramName);
 
-		if (StringUtils.trimToNull(intValString) != null)
-		{
+		if (StringUtils.trimToNull(intValString) != null) {
 			return Integer.parseInt(intValString);
 		}
-		else
-		{
+		else {
 			return defaultValue;
 		}
 	}
@@ -365,8 +384,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	/**
 	 * Determine if message is hidden (draft property set)
 	 */
-	private boolean isHidden(AnnouncementMessage message) 
-	{
+	private boolean isHidden(AnnouncementMessage message) {
 		return 	message.getHeader().getDraft();
 	}
 	
@@ -374,10 +392,8 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	 * Determines if use has draft (UI: hidden) permission or site.upd
 	 * If so, they will be able to view messages that are hidden
 	 */
-	private boolean canViewHidden(AnnouncementMessage msg, String siteId) 
-	{
-		final boolean b = securityService.unlock(AnnouncementService.SECURE_READ_DRAFT, msg.getReference())
-							 || securityService.unlock(UPDATE_PERMISSIONS, "/site/"+ siteId); 
+	private boolean canViewHidden(AnnouncementMessage msg, String siteId) {
+		final boolean b = securityService.unlock(AnnouncementService.SECURE_READ_DRAFT, msg.getReference()) || securityService.unlock(UPDATE_PERMISSIONS, "/site/"+ siteId); 
 		return b;
 	}
 	
@@ -386,29 +402,21 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	/*
 	 * Callback class so that we can form references in a generic way.
 	 */
-	private final class AnnouncementChannelReferenceMaker implements MergedList.ChannelReferenceMaker
-	{
-		public String makeReference(String siteId)
-		{
+	private final class AnnouncementChannelReferenceMaker implements MergedList.ChannelReferenceMaker {
+		public String makeReference(String siteId) {
 			return announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
 		}
 	}
 
-	public final class AnnouncementReferenceToChannelConverter implements
-	MergedListEntryProviderFixedListWrapper.ReferenceToChannelConverter
-	{
-		public Object getChannel(String channelReference)
-		{
-			try
-			{
+	public final class AnnouncementReferenceToChannelConverter implements MergedListEntryProviderFixedListWrapper.ReferenceToChannelConverter {
+		public Object getChannel(String channelReference) {
+			try {
 				return announcementService.getAnnouncementChannel(channelReference);
 			}
-			catch (IdUnusedException e)
-			{
+			catch (IdUnusedException e) {
 				return null;
 			}
-			catch (PermissionException e)
-			{
+			catch (PermissionException e) {
 				return null;
 			}
 		}
@@ -418,30 +426,24 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	/**
 	 * Used to provide a interface to the MergedList class that is shared with the calendar action.
 	 */
-	public class EntryProvider extends MergedListEntryProviderBase
-	{
+	public class EntryProvider extends MergedListEntryProviderBase {
 		/*
 		 * (non-Javadoc)
 		 * 
 		 * @see org.sakaiproject.util.MergedListEntryProviderBase#makeReference(java.lang.String)
 		 */
-		public Object makeObjectFromSiteId(String id)
-		{
+		public Object makeObjectFromSiteId(String id) {
 			String channelReference = announcementService.channelReference(id, SiteService.MAIN_CONTAINER);
 			Object channel = null;
 
-			if (channelReference != null)
-			{
-				try
-				{
+			if (channelReference != null) {
+				try {
 					channel = announcementService.getChannel(channelReference);
 				}
-				catch (IdUnusedException e)
-				{
+				catch (IdUnusedException e) {
 					// The channel isn't there.
 				}
-				catch (PermissionException e)
-				{
+				catch (PermissionException e) {
 					// We can't see the channel
 				}
 			}
@@ -454,8 +456,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 		 * 
 		 * @see org.chefproject.actions.MergedEntryList.EntryProvider#allowGet(java.lang.Object)
 		 */
-		public boolean allowGet(String ref)
-		{
+		public boolean allowGet(String ref) {
 			return announcementService.allowGetChannel(ref);
 		}
 
@@ -464,10 +465,8 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 		 * 
 		 * @see org.chefproject.actions.MergedEntryList.EntryProvider#getContext(java.lang.Object)
 		 */
-		public String getContext(Object obj)
-		{
-			if (obj == null)
-			{
+		public String getContext(Object obj) {
+			if (obj == null) {
 				return "";
 			}
 
@@ -480,10 +479,8 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 		 * 
 		 * @see org.chefproject.actions.MergedEntryList.EntryProvider#getReference(java.lang.Object)
 		 */
-		public String getReference(Object obj)
-		{
-			if (obj == null)
-			{
+		public String getReference(Object obj) {
+			if (obj == null) {
 				return "";
 			}
 
@@ -496,10 +493,8 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 		 * 
 		 * @see org.chefproject.actions.MergedEntryList.EntryProvider#getProperties(java.lang.Object)
 		 */
-		public ResourceProperties getProperties(Object obj)
-		{
-			if (obj == null)
-			{
+		public ResourceProperties getProperties(Object obj) {
+			if (obj == null) {
 				return null;
 			}
 
@@ -509,30 +504,29 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 
 	}
 
-	private List<AnnouncementMessage> wrapList(List<AnnouncementMessage> messages, AnnouncementChannel currentChannel, AnnouncementChannel hostingChannel,
-			int maxNumberOfDaysInThePast, boolean isEnforceNumberOfDaysInThePastLimit)
-	{
+	private List<AnnouncementMessage> wrapList(List<AnnouncementMessage> messages, AnnouncementChannel currentChannel, AnnouncementChannel hostingChannel, int maxNumberOfDaysInThePast, boolean isEnforceNumberOfDaysInThePastLimit, boolean motdView) {
 	//	int maxNumberOfDaysInThePast = options.getNumberOfDaysInThePast();
 
 		List<AnnouncementMessage> messageList = new ArrayList<AnnouncementMessage>();
 
 		Iterator<AnnouncementMessage> it = messages.iterator();
 
-		while (it.hasNext())
-		{
+		while (it.hasNext()) {
 			AnnouncementMessage message = (AnnouncementMessage) it.next();
 
 			// See if the message falls within the filter window.
-			if (isEnforceNumberOfDaysInThePastLimit && !isMessageWithinLastNDays(message, maxNumberOfDaysInThePast))
-			{
+			if (isEnforceNumberOfDaysInThePastLimit && !isMessageWithinLastNDays(message, maxNumberOfDaysInThePast)) {
 				continue;
 			}
 		
-		
 				Site site;
 				try {
-					site = siteService.getSite(currentChannel.getContext());
-					messageList.add(new WrappedAnnouncement(message, currentChannel.getContext(), site.getTitle()));
+					if(motdView) {
+						messageList.add(new WrappedAnnouncement(message, currentChannel.getContext(), "MOTD"));
+					} else {
+						site = siteService.getSite(currentChannel.getContext());
+						messageList.add(new WrappedAnnouncement(message, currentChannel.getContext(), site.getTitle()));
+					}
 				} catch (IdUnusedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -546,12 +540,10 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	/**
 	 * See if the given message was posted in the last N days, where N is the value of the maxDaysInPast parameter.
 	 */
-	private static boolean isMessageWithinLastNDays(AnnouncementMessage message, int maxDaysInPast)
-	{
+	private static boolean isMessageWithinLastNDays(AnnouncementMessage message, int maxDaysInPast) {
+		
 		long currentTime = new Date().getTime();
-
 		long timeDeltaMSeconds = currentTime - message.getHeader().getDate().getTime();
-
 		long numDays = timeDeltaMSeconds / MILLISECONDS_IN_DAY;
 
 		return (numDays <= maxDaysInPast);
@@ -604,6 +596,10 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	public boolean entityExists(String arg0) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	public List<?> getEntities(EntityReference ref, Search search) {
+		return null;
 	}
 		
 	public class DecoratedAnnouncement {
@@ -694,7 +690,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	}
 	
 	
-public class WrappedAnnouncement implements AnnouncementMessage{
+	public class WrappedAnnouncement implements AnnouncementMessage {
 		
 		private AnnouncementMessage message;
 		private String siteId;
