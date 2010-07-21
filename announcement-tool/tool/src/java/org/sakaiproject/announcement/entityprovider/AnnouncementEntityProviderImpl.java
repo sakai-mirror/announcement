@@ -89,174 +89,173 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 		
 		
 
-				//check if we are loading data for a user
-				//note that it is not possible to SPECIFY a userId.
-				boolean workspaceView = false;
-				if(siteService.isUserSite(siteId)) {
-					workspaceView = true;
-				}
-				
-				log.debug("workspaceView: " + workspaceView);
-				log.debug("motdView: " + motdView);
-				log.debug("siteId: " + siteId);
-				log.debug("currentUserId: " + currentUserId);
-
-				boolean isSynoptic = true;
-
-				List<AnnouncementMessage> messageList = new ArrayList<AnnouncementMessage>();
-				MergedList mergedAnnouncementList = new MergedList();
-
-				String[] channelArrayFromConfigParameterValue = null;	
-
-				//create the channelId
-				String channelId = null;
-				if(motdView) {
-					channelId = announcementService.channelReference(siteId, MOTD_CHANNEL_SUFFIX);
-				} else {
-					channelId = announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
-				}
-				
-				log.debug("channel: " + channelId);
-
-				//get the announcement channel for this site
-				AnnouncementChannel defaultChannel;
-				
-				try {
-					defaultChannel = announcementService.getAnnouncementChannel(channelId);
-				} catch (IdUnusedException e) {
-					log.warn("Announcement channel not found: " + channelId, e);
-					return dAnnouncements;
-				} catch (PermissionException e) {
-					throw new SecurityException("You do not have access to view the announcement channel: " + channelId, e);
-				}
-
-				Site site = null;
-				String initMergeList = null;
-				ToolConfiguration tc = null;
-				ToolConfiguration synopticTc = null;
-				
-				if(!motdView) {
-					
-					//get site
-					try {
-						site = siteService.getSite(siteId);
-					} catch (IdUnusedException e) {
-						//this should already have been checked and caught, so just print the stacktrace
-						e.printStackTrace();
-					}
-
-					//get tool properties for sakai.announcements in this site
-					tc = site.getToolForCommonId("sakai.announcements");
-				}
-					
-				if (tc != null){
-					//Properties ps= tc.getPlacementConfig();
-					initMergeList = tc.getPlacementConfig().getProperty(PORTLET_CONFIG_PARAM_MERGED_CHANNELS);	
-				}
-
-				if (!securityService.isSuperUser() && workspaceView) {
-					channelArrayFromConfigParameterValue = mergedAnnouncementList.getAllPermittedChannels(new AnnouncementChannelReferenceMaker());
-				} else {
-					channelArrayFromConfigParameterValue = mergedAnnouncementList.getChannelReferenceArrayFromDelimitedString(channelId, initMergeList);
-				}
-				
-
-				mergedAnnouncementList.loadChannelsFromDelimitedString(
-						workspaceView, 
-						new MergedListEntryProviderFixedListWrapper(
-								new EntryProvider(), 
-								channelId, 
-								channelArrayFromConfigParameterValue,
-								new AnnouncementReferenceToChannelConverter()
-						),
-						StringUtils.trimToEmpty(currentUserId),
-						channelArrayFromConfigParameterValue,
-						securityService.isSuperUser(),
-						siteId);
-
-				//synoptic announcement settings
-				boolean isEnforceNumberOfAnnouncements = true;
-				int numberOfAnnouncements = DEFAULT_DISPLAY_NUMBER_OPTION;
-				boolean enforceDays = true;
-				int maxNumberOfDaysInThePastProp = numberOfDaysInThePast;
-
-				if(!motdView) {
-					//get properties for synoptic tool in this site
-					synopticTc = site.getToolForCommonId("sakai.synoptic.announcement");
-				}
-				
-				if(synopticTc != null){
-					Properties props = synopticTc.getPlacementConfig();
-					if(props.isEmpty()) {
-						props = synopticTc.getConfig();
-					}
-					
-					if(props != null){
-						if (props.get(varNameNumberOfAnnouncements) != null) {
-							numberOfAnnouncements = getIntegerParameter(props, varNameNumberOfAnnouncements, numberOfAnnouncements);
-							isEnforceNumberOfAnnouncements = true;
-						}
-						if (props.get(varNameNumberOfDaysInPast) != null) {
-							maxNumberOfDaysInThePastProp = getIntegerParameter(props, varNameNumberOfDaysInPast, numberOfDaysInThePast);
-							enforceDays = true;
-						}
-					}
-				}
-
-
-				//get messages in each channel
-				for (Iterator channelsIt = mergedAnnouncementList.iterator(); channelsIt.hasNext();) {
-					MergedList.MergedEntry curEntry = (MergedList.MergedEntry) channelsIt.next();
-
-					// If this entry should not be merged, skip to the next one.
-					if (!curEntry.isMerged()) {
-						continue;
-					}
-
-					AnnouncementChannel curChannel = null;
-					try {
-						curChannel = (AnnouncementChannel) announcementService.getChannel(curEntry.getReference());
-					}
-					catch (IdUnusedException e) {
-						e.printStackTrace();
-					}
-					catch (PermissionException e) {
-						e.printStackTrace();
-					}
-
-					if (curChannel != null) {
-						if (announcementService.allowGetChannel(curChannel.getReference())) {
-							try {
-								messageList.addAll(wrapList(curChannel.getMessages(null, true), curChannel, defaultChannel, maxNumberOfDaysInThePastProp, enforceDays, motdView));
-							} catch (PermissionException e) {
-								e.printStackTrace();
-							}
-						}
-					}
-				}
-
-				// Do an overall sort. We couldn't do this earlier since each merged channel
-				Collections.sort(messageList);
-
-				// Apply any necessary list truncation.
-				messageList = getViewableMessages(messageList, siteId, workspaceView, isSynoptic);
-				messageList = trimListToMaxNumberOfAnnouncements(messageList, isEnforceNumberOfAnnouncements, numberOfAnnouncements);
-
-			
-
-				for (AnnouncementMessage announcement : (List<AnnouncementMessage>) messageList) {
-					List<String> attachmentsList = new ArrayList<String>();
-					for (Reference attachment : (List<Reference>) announcement.getHeader().getAttachments()) {
-						attachmentsList.add(attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()));
-					}
-					dAnnouncements.add(new DecoratedAnnouncement(announcement.getId(), announcement
-							.getAnnouncementHeader().getSubject(), announcement
-							.getBody(), announcement.getHeader().getFrom()
-							.getDisplayName(), "" + announcement.getHeader().getDate().getTime(),							
-							attachmentsList, ((WrappedAnnouncement) announcement).getSiteId(), ((WrappedAnnouncement) announcement).getSiteTitle()));
-				}
-			
+		//check if we are loading data for a user
+		//note that it is not possible to SPECIFY a userId.
+		boolean workspaceView = false;
+		if(siteService.isUserSite(siteId)) {
+			workspaceView = true;
+		}
 		
+		log.debug("workspaceView: " + workspaceView);
+		log.debug("motdView: " + motdView);
+		log.debug("siteId: " + siteId);
+		log.debug("currentUserId: " + currentUserId);
+
+		boolean isSynoptic = true;
+
+		List<AnnouncementMessage> messageList = new ArrayList<AnnouncementMessage>();
+		MergedList mergedAnnouncementList = new MergedList();
+
+		String[] channelArrayFromConfigParameterValue = null;	
+
+		//create the channelId
+		String channelId = null;
+		if(motdView) {
+			channelId = announcementService.channelReference(siteId, MOTD_CHANNEL_SUFFIX);
+		} else {
+			channelId = announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
+		}
+		
+		log.debug("channel: " + channelId);
+
+		//get the announcement channel for this site
+		AnnouncementChannel defaultChannel;
+		
+		try {
+			defaultChannel = announcementService.getAnnouncementChannel(channelId);
+		} catch (IdUnusedException e) {
+			log.warn("Announcement channel not found: " + channelId, e);
+			return dAnnouncements;
+		} catch (PermissionException e) {
+			throw new SecurityException("You do not have access to view the announcement channel: " + channelId, e);
+		}
+
+		Site site = null;
+		String initMergeList = null;
+		ToolConfiguration tc = null;
+		ToolConfiguration synopticTc = null;
+		
+		if(!motdView) {
+			
+			//get site
+			try {
+				site = siteService.getSite(siteId);
+			} catch (IdUnusedException e) {
+				//this should already have been checked and caught, so just print the stacktrace
+				e.printStackTrace();
+			}
+
+			//get tool properties for sakai.announcements in this site
+			tc = site.getToolForCommonId("sakai.announcements");
+		}
+			
+		if (tc != null){
+			//Properties ps= tc.getPlacementConfig();
+			initMergeList = tc.getPlacementConfig().getProperty(PORTLET_CONFIG_PARAM_MERGED_CHANNELS);	
+		}
+
+		if (!securityService.isSuperUser() && workspaceView) {
+			channelArrayFromConfigParameterValue = mergedAnnouncementList.getAllPermittedChannels(new AnnouncementChannelReferenceMaker());
+		} else {
+			channelArrayFromConfigParameterValue = mergedAnnouncementList.getChannelReferenceArrayFromDelimitedString(channelId, initMergeList);
+		}
+		
+
+		mergedAnnouncementList.loadChannelsFromDelimitedString(
+				workspaceView, 
+				new MergedListEntryProviderFixedListWrapper(
+						new EntryProvider(), 
+						channelId, 
+						channelArrayFromConfigParameterValue,
+						new AnnouncementReferenceToChannelConverter()
+				),
+				StringUtils.trimToEmpty(currentUserId),
+				channelArrayFromConfigParameterValue,
+				securityService.isSuperUser(),
+				siteId);
+
+		//synoptic announcement settings
+		boolean isEnforceNumberOfAnnouncements = true;
+		int numberOfAnnouncements = DEFAULT_DISPLAY_NUMBER_OPTION;
+		boolean enforceDays = true;
+		int maxNumberOfDaysInThePastProp = numberOfDaysInThePast;
+
+		if(!motdView) {
+			//get properties for synoptic tool in this site
+			synopticTc = site.getToolForCommonId("sakai.synoptic.announcement");
+		}
+		
+		if(synopticTc != null){
+			Properties props = synopticTc.getPlacementConfig();
+			if(props.isEmpty()) {
+				props = synopticTc.getConfig();
+			}
+			
+			if(props != null){
+				if (props.get(varNameNumberOfAnnouncements) != null) {
+					numberOfAnnouncements = getIntegerParameter(props, varNameNumberOfAnnouncements, numberOfAnnouncements);
+					isEnforceNumberOfAnnouncements = true;
+				}
+				if (props.get(varNameNumberOfDaysInPast) != null) {
+					maxNumberOfDaysInThePastProp = getIntegerParameter(props, varNameNumberOfDaysInPast, numberOfDaysInThePast);
+					enforceDays = true;
+				}
+			}
+		}
+
+
+		//get messages in each channel
+		for (Iterator channelsIt = mergedAnnouncementList.iterator(); channelsIt.hasNext();) {
+			MergedList.MergedEntry curEntry = (MergedList.MergedEntry) channelsIt.next();
+
+			// If this entry should not be merged, skip to the next one.
+			if (!curEntry.isMerged()) {
+				continue;
+			}
+
+			AnnouncementChannel curChannel = null;
+			try {
+				curChannel = (AnnouncementChannel) announcementService.getChannel(curEntry.getReference());
+			}
+			catch (IdUnusedException e) {
+				e.printStackTrace();
+			}
+			catch (PermissionException e) {
+				e.printStackTrace();
+			}
+
+			if (curChannel != null) {
+				if (announcementService.allowGetChannel(curChannel.getReference())) {
+					try {
+						messageList.addAll(wrapList(curChannel.getMessages(null, true), curChannel, defaultChannel, maxNumberOfDaysInThePastProp, enforceDays, motdView));
+					} catch (PermissionException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+
+		// Do an overall sort. We couldn't do this earlier since each merged channel
+		Collections.sort(messageList);
+
+		// Apply any necessary list truncation.
+		messageList = getViewableMessages(messageList, siteId, workspaceView, isSynoptic);
+		messageList = trimListToMaxNumberOfAnnouncements(messageList, isEnforceNumberOfAnnouncements, numberOfAnnouncements);
+
+	
+
+		for (AnnouncementMessage announcement : (List<AnnouncementMessage>) messageList) {
+			List<String> attachmentsList = new ArrayList<String>();
+			for (Reference attachment : (List<Reference>) announcement.getHeader().getAttachments()) {
+				attachmentsList.add(attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()));
+			}
+			dAnnouncements.add(new DecoratedAnnouncement(announcement.getId(), announcement
+					.getAnnouncementHeader().getSubject(), announcement
+					.getBody(), announcement.getHeader().getFrom()
+					.getDisplayName(), "" + announcement.getHeader().getDate().getTime(),							
+					attachmentsList, ((WrappedAnnouncement) announcement).getSiteId(), ((WrappedAnnouncement) announcement).getSiteTitle()));
+		}
+			
     	return dAnnouncements;
 	}
 	
