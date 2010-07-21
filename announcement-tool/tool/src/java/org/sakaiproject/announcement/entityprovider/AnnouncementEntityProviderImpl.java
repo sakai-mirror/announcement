@@ -301,7 +301,8 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 
 		String userId = sessionManager.getCurrentSessionUserId();
 		if (StringUtils.isBlank(userId)) {
-			throw new SecurityException("You must be logged in to get your announcements.");
+			//throw new SecurityException("You must be logged in to get your announcements.");
+			return getMessagesOfTheDay(view, ref);
 		}
 
 		//we still need a siteId since Announcements keys it's data on a channel reference created from a siteId.
