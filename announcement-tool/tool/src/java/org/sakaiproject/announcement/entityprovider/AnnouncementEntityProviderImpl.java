@@ -190,7 +190,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 			da.setSiteId(siteId);
 			da.setSiteTitle(siteTitle);
 			
-			//get announcements
+			//get attachments
 			List<String> attachments = new ArrayList<String>();
 			for (Reference attachment : (List<Reference>) a.getHeader().getAttachments()) {
 				attachments.add(attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()));
