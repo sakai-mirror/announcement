@@ -304,18 +304,15 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	}
 
 
-	public boolean entityExists(String arg0) {
-		// TODO Auto-generated method stub
+	public boolean entityExists(String id) {
 		return false;
 	}
 	
 	public Object getSampleEntity() {
-		// TODO Auto-generated method stub
-		return null;
+		return new DecoratedAnnouncement();
 	}
 	
-	public Object getEntity(EntityReference arg0) {
-		// TODO Auto-generated method stub
+	public Object getEntity(EntityReference ref) {
 		return null;
 	}
 
