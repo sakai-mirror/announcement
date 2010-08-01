@@ -174,11 +174,17 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 			try {
 				announcements.addAll(announcementService.getMessages(channel, t, numberOfAnnouncements, true, false, onlyPublic));
 			} catch (PermissionException e) {
-				throw new SecurityException("You do not have access to view the announcement channel: " + channel, e);
+				log.warn("User: " + currentUserId + " does not have access to view the announcement channel: " + channel + ". Skipping...");
 			}
 		}
 		
 		log.debug("announcements.size(): " + announcements.size());
+		
+		//sort
+		Collections.sort(announcements);
+		
+		//trim to final number
+		announcements = announcements.subList(0, numberOfAnnouncements);
 		
 		//convert raw announcements into decorated announcements
 		List<DecoratedAnnouncement> decoratedAnnouncements = new ArrayList<DecoratedAnnouncement>();
