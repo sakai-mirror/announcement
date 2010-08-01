@@ -1,7 +1,9 @@
 package org.sakaiproject.announcement.entityprovider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,9 @@ import org.sakaiproject.site.api.ToolConfiguration;
 import org.sakaiproject.time.api.Time;
 import org.sakaiproject.time.api.TimeService;
 import org.sakaiproject.tool.api.SessionManager;
+import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
+import org.sakaiproject.util.MergedList;
 import org.sakaiproject.util.ResourceLoader;
 
 public class AnnouncementEntityProviderImpl extends AbstractEntityProvider implements CoreEntityProvider, AutoRegisterEntityProvider, RESTful, ActionsExecutable{
@@ -43,13 +47,10 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	
 	private static final String PORTLET_CONFIG_PARAM_MERGED_CHANNELS = "mergedAnnouncementChannels";
 	private static final String MOTD_SITEID = "!site";
+	private static final String ADMIN_SITEID = "!admin";
 	private static final String MOTD_CHANNEL_SUFFIX = "motd";
-	
 	public static int DEFAULT_NUM_ANNOUNCEMENTS = 3;
 	public static int DEFAULT_DAYS_IN_PAST = 10;
-	
-	// hours * minutes * seconds * milliseconds
-	private static final long MILLISECONDS_IN_DAY = (24 * 60 * 60 * 1000);
 	private static final Log log = LogFactory.getLog(AnnouncementEntityProviderImpl.class);
 	private static ResourceLoader rb = new ResourceLoader("announcement");
 	
@@ -97,16 +98,15 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 			}
 		}
 		
-		//create the channelId
-		String channelId = null;
-		if(motdView) {
-			channelId = announcementService.channelReference(siteId, MOTD_CHANNEL_SUFFIX);
-		} else {
-			channelId = announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
+		// get the channels
+		List<String> channels = getChannels(siteId);
+		if(channels.size() == 0){
+			throw new EntityNotFoundException("No announcement channels found for site: " + siteId, siteId);
 		}
 		
-		log.debug("channel: " + channelId);
-
+		log.debug("channels: " + channels.toString());
+		log.debug("num channels: " + channels.size());
+		
 		Site site = null;
 		String siteTitle = null;
 		ToolConfiguration synopticTc = null;
@@ -123,6 +123,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 			
 			//get properties for synoptic tool in this site
 			synopticTc = site.getToolForCommonId("sakai.synoptic.announcement");
+			
 		}
 		
 		if(synopticTc != null){
@@ -142,6 +143,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 				}
 			}
 		}
+		
 		
 		//get site title
 		if(!motdView) {
@@ -164,14 +166,16 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 		//get the Sakai Time for the given java Date
 		Time t = timeService.newTime(getTimeForDaysInPast(numberOfDaysInThePast).getTime());
 		
-		//get the announcements
+		//get the announcements for each channel
 		List<AnnouncementMessage> announcements = new ArrayList<AnnouncementMessage>();
 		
-		
-		try {
-			announcements = announcementService.getMessages(channelId, t, numberOfAnnouncements, true, false, onlyPublic);
-		} catch (PermissionException e) {
-			throw new SecurityException("You do not have access to view the announcement channel: " + channelId, e);
+		//for each channel
+		for(String channel: channels) {
+			try {
+				announcements.addAll(announcementService.getMessages(channel, t, numberOfAnnouncements, true, false, onlyPublic));
+			} catch (PermissionException e) {
+				throw new SecurityException("You do not have access to view the announcement channel: " + channel, e);
+			}
 		}
 		
 		log.debug("announcements.size(): " + announcements.size());
@@ -236,6 +240,85 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	}
 	
 	
+	/**
+	 * Helper to get the channels for a site. 
+	 * <p>
+	 * If user site and not superuser, returns all available channels for this user.<br />
+	 * If user site and superuser, return all merged channels.<br />
+	 * If normal site, returns all merged channels.<br />
+	 * If motd site, returns the motd channel.
+	 * 
+	 * @param siteId
+	 * @return
+	 */
+	private List<String> getChannels(String siteId) {
+		
+		List<String> channels = new ArrayList<String>();
+		
+		//if motd
+		if(StringUtils.equals(siteId, MOTD_SITEID)) {
+			log.debug("is motd site, returning motd channel");
+			channels = Collections.singletonList(announcementService.channelReference(siteId, MOTD_CHANNEL_SUFFIX));
+			return channels;
+		}
+		
+		//if user site
+		if(siteService.isUserSite(siteId)) {
+			//if not super user, get all channels this user has access to
+			if(!securityService.isSuperUser()){
+				log.debug("is user site and not super user, returning all permitted channels");
+				channels = Arrays.asList(new MergedList().getAllPermittedChannels(new AnnouncementChannelReferenceMaker()));
+				return channels;
+			}
+		}
+		
+		//this is either a normal site, or we are a super user
+		//so get the merged announcements for this site
+		Site site = null;
+		try {
+			site = siteService.getSite(siteId);
+		} catch (IdUnusedException e) {
+			//this should have been caught and dealt with already so just return empty list
+			return channels;
+		}
+		if(site != null) {
+			ToolConfiguration toolConfig = site.getToolForCommonId("sakai.announcements");
+			
+			if(toolConfig != null){
+				Properties props = toolConfig.getPlacementConfig();
+				if(props.isEmpty()) {
+					props = toolConfig.getConfig();
+				}
+				
+				if(props != null){
+					log.debug("is normal site or super user, returning all merged channels");
+
+					String mergeProp = (String)props.get(PORTLET_CONFIG_PARAM_MERGED_CHANNELS);
+					log.debug("mergeProp: " + mergeProp);
+					if(StringUtils.isNotBlank(mergeProp)) {
+						channels = Arrays.asList(new MergedList().getChannelReferenceArrayFromDelimitedString(new AnnouncementChannelReferenceMaker().makeReference(siteId), mergeProp));
+					}
+				}
+			}
+		}
+		
+		return channels;
+	}
+	
+	
+	
+	
+	
+	/*
+	 * Callback class so that we can form references in a generic way.
+	 */
+	private final class AnnouncementChannelReferenceMaker implements MergedList.ChannelReferenceMaker {
+		public String makeReference(String siteId){
+			return announcementService.channelReference(siteId, SiteService.MAIN_CONTAINER);
+		}
+	}
+	
+	
 	
 	/**
 	 * site/siteId
@@ -262,7 +345,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
         
 		//check this is a valid site
 		if(!siteService.siteExists(siteId)) {
-			throw new EntityNotFoundException("Invalid siteId: ", siteId);
+			throw new EntityNotFoundException("Invalid siteId: " + siteId, siteId);
 		}
 
 		List<?> l = getAnnouncements(siteId, params, onlyPublic);
@@ -286,6 +369,11 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 		String siteId = siteService.getUserSiteId(userId);
 		if(StringUtils.isBlank(siteId)) {
 			throw new IllegalArgumentException("No siteId was found for userId: " + userId);
+		}
+		
+		//if admin user, siteID is the admin workspace
+		if(StringUtils.equals(userId, userDirectoryService.ADMIN_EID)){
+			siteId = ADMIN_SITEID;
 		}
 
 		List<?> l = getAnnouncements(siteId, params, false);
@@ -465,6 +553,11 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	private TimeService timeService;
 	public void setTimeService(TimeService timeService) {
 		this.timeService = timeService;
+	}
+	
+	private ToolManager toolManager;
+	public void setToolManager(ToolManager toolManager) {
+		this.toolManager = toolManager;
 	}
 
 }
