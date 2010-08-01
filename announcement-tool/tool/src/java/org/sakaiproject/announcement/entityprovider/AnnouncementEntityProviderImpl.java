@@ -180,35 +180,47 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 		
 		log.debug("announcements.size(): " + announcements.size());
 		
-		//sort
-		Collections.sort(announcements);
-		
-		//trim to final number
-		announcements = announcements.subList(0, numberOfAnnouncements);
-		
 		//convert raw announcements into decorated announcements
 		List<DecoratedAnnouncement> decoratedAnnouncements = new ArrayList<DecoratedAnnouncement>();
 	
 		for (AnnouncementMessage a : announcements) {
 			
-			DecoratedAnnouncement da = new DecoratedAnnouncement();
-			da.setId(a.getId());
-			da.setTitle(a.getAnnouncementHeader().getSubject());
-			da.setBody(a.getBody());
-			da.setCreatedByDisplayName(a.getHeader().getFrom().getDisplayName());
-			da.setCreatedOn(new Date(a.getHeader().getDate().getTime()));
-			da.setSiteId(siteId);
-			da.setSiteTitle(siteTitle);
-			
-			//get attachments
-			List<String> attachments = new ArrayList<String>();
-			for (Reference attachment : (List<Reference>) a.getHeader().getAttachments()) {
-				attachments.add(attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()));
+			try {
+				DecoratedAnnouncement da = new DecoratedAnnouncement();
+				da.setId(a.getId());
+				da.setTitle(a.getAnnouncementHeader().getSubject());
+				da.setBody(a.getBody());
+				da.setCreatedByDisplayName(a.getHeader().getFrom().getDisplayName());
+				da.setCreatedOn(new Date(a.getHeader().getDate().getTime()));
+				da.setSiteId(siteId);
+				da.setSiteTitle(siteTitle);
+				
+				//get attachments
+				List<String> attachments = new ArrayList<String>();
+				for (Reference attachment : (List<Reference>) a.getHeader().getAttachments()) {
+					attachments.add(attachment.getProperties().getPropertyFormatted(attachment.getProperties().getNamePropDisplayName()));
+				}
+				da.setAttachments(attachments);
+				
+				decoratedAnnouncements.add(da);
+			} catch (Exception e) {
+				//this can throw an exception if we are not logged in, ie public, this is fine so just deal with it and continue
+				log.info("Exception caught processing announcement: " + a.getId() + " for user: " + currentUserId + ". Skipping...");
 			}
-			da.setAttachments(attachments);
-			
-			decoratedAnnouncements.add(da);
 		}
+		
+		//sort
+		Collections.sort(decoratedAnnouncements);
+		
+		//reverse so it is date descending. This could be dependent on a parameter that specifies the sort order
+		Collections.reverse(decoratedAnnouncements);
+		
+		//trim to final number, within bounds of list size.
+		if(numberOfAnnouncements > announcements.size()) {
+			numberOfAnnouncements = announcements.size();
+		}
+		decoratedAnnouncements = decoratedAnnouncements.subList(0, numberOfAnnouncements);
+		
 		
 		return decoratedAnnouncements;
 	}
@@ -297,7 +309,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 				}
 				
 				if(props != null){
-					log.debug("is normal site or super user, returning all merged channels");
+					log.debug("is normal site or super user, returning all merged channels in this site");
 
 					String mergeProp = (String)props.get(PORTLET_CONFIG_PARAM_MERGED_CHANNELS);
 					log.debug("mergeProp: " + mergeProp);
@@ -451,7 +463,7 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 	/**
 	 * Class to hold only the fields that we want to return
 	 */
-	public class DecoratedAnnouncement {
+	public class DecoratedAnnouncement implements Comparable<Object>{
 		private String id;
 		private String title;
 		private String body;
@@ -526,7 +538,14 @@ public class AnnouncementEntityProviderImpl extends AbstractEntityProvider imple
 
 		public void setSiteTitle(String siteTitle) {
 			this.siteTitle = siteTitle;
-		}	
+		}
+
+		//default sort by date ascending
+		public int compareTo(Object o) {
+			Date field = ((DecoratedAnnouncement)o).getCreatedOn();
+	        int lastCmp = createdOn.compareTo(field);
+	        return (lastCmp != 0 ? lastCmp : createdOn.compareTo(field));
+		}
 		
 	}
 	
