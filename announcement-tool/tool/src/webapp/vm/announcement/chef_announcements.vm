@@ -620,7 +620,7 @@
 										#end
 									#end
 									<td >
-										$!ann_item.getRange()
+										$validator.escapeHtml($!ann_item.getRange())
 									</td>
 									<td headers="date"> 
 										$ann_item.Header.Date.toStringLocalFull()
