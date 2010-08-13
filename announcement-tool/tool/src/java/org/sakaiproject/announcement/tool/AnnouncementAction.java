@@ -3993,14 +3993,16 @@ public class AnnouncementAction extends PagedResourceActionII
 		} // if-else (!displayOptions.isShowOnlyOptionsButton())
 		
 		//re-orderer link in the announcementlist view
-		if (sakaiReorderProperty.equalsIgnoreCase("true") && menu_new && state.getStatus()!="reorder" && state.getStatus()!="showMetadata")
-		{
-			bar.add(new MenuEntry(rb.getString("java.reorder"), REORDER_BUTTON_HANDLER));
-		}
-		else if ((placementProperties.containsKey("enableReorder") && placementProperties.getProperty("enableReorder").equalsIgnoreCase("true")) 
+		if ((placementProperties.containsKey("enableReorder") && placementProperties.getProperty("enableReorder").equalsIgnoreCase("true")) 
 				&& menu_new && state.getStatus()!="reorder" && state.getStatus()!="showMetadata")
 		{
 			bar.add(new MenuEntry(rb.getString("java.reorder"), REORDER_BUTTON_HANDLER));
+		}
+		else if ((!placementProperties.containsKey("enableReorder")|| !placementProperties.getProperty("enableReorder").equalsIgnoreCase("false")) && menu_new && state.getStatus()!="reorder" && state.getStatus()!="showMetadata")
+		{			
+			if (sakaiReorderProperty.equalsIgnoreCase("true")){
+				bar.add(new MenuEntry(rb.getString("java.reorder"), REORDER_BUTTON_HANDLER));
+			}
 		}
 
 		// add options if allowed
