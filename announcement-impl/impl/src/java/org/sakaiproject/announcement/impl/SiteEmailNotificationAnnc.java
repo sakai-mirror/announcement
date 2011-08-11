@@ -336,26 +336,12 @@ public class SiteEmailNotificationAnnc extends SiteEmailNotification
 	 */
 	protected String getFromAddress(Event event)
 	{
-		Reference ref = EntityManager.newReference(event.getResource());
-		
-		//SAK-14831, yorkadam, make site title reflected in 'From:' name
-		String siteId = (getSite() != null) ? getSite() : ref.getContext();
-		String title = siteId;
-		try
-		{
-			Site site = SiteService.getSite(siteId);
-			title = site.getTitle();
-		}
-		catch(Exception ignore)
-		{}
-		
 		String userEmail = "no-reply@" + ServerConfigurationService.getServerName();
-		String userDisplay = title; 
-		String no_reply = "From: \"" + userDisplay + "\" <" + userEmail + ">";		
-		String from = (userDisplay.equals(null)) ? getFrom(event) : no_reply;
-
-		
+		String userDisplay = ServerConfigurationService.getString("ui.service", "Sakai");
+		String no_reply= "From: \"" + userDisplay + "\" <" + userEmail + ">";
+		String from= getFrom(event);
 		// get the message
+		Reference ref = EntityManager.newReference(event.getResource());
 		AnnouncementMessage msg = (AnnouncementMessage) ref.getEntity();
 		String userId=msg.getAnnouncementHeader().getFrom().getDisplayId();
 
