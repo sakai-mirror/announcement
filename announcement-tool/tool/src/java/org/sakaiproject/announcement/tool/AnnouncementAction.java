@@ -73,6 +73,7 @@ import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.entity.cover.EntityManager;
 import org.sakaiproject.entitybroker.EntityBroker;
 import org.sakaiproject.entitybroker.entityprovider.extension.ActionReturn;
+import org.sakaiproject.entitybroker.entityprovider.extension.ActionReturn.Header;
 import org.sakaiproject.event.api.NotificationService;
 import org.sakaiproject.event.api.SessionState;
 import org.sakaiproject.exception.IdInvalidException;
@@ -168,6 +169,8 @@ public class AnnouncementAction extends PagedResourceActionII
 	private static final String SORT_GROUPTITLE = "grouptitle";
 
 	private static final String SORT_GROUPDESCRIPTION = "groupdescription";
+	
+	private static String SORT_CURRENTORDER = "date";
 
 	private static final String CONTEXT_VAR_DISPLAY_OPTIONS = "displayOptions";
 
@@ -232,7 +235,19 @@ public class AnnouncementAction extends PagedResourceActionII
    
    private EntityBroker entityBroker;
    
-   private static int MaxNoOfAnn =0;
+   /*
+	 * Returns the current order
+	 * 
+	 */
+	public static String getCurrentOrder() {
+		
+		String enableReorder=ServerConfigurationService.getString("sakai.announcement.reorder", "false");
+		
+		if (enableReorder.equals("true")){
+			SORT_CURRENTORDER="message_order";
+		}			
+		return SORT_CURRENTORDER;
+	}
 
 	/**
 	 * Used by callback to convert channel references to channels.
@@ -957,9 +972,17 @@ public class AnnouncementAction extends PagedResourceActionII
 					{
 						messages = getMessages(channel, null, true, state, portlet);
 					}
-					
+					//readResourcesPage expects messages to be in session, so put the entire messages list in the session
 					sstate.setAttribute("messages", messages);
+					//readResourcesPage just orders the list correctly, so we can trim a correct list
+					messages = readResourcesPage(sstate, 1, messages.size() + 1);
+					//this will trim the list for us to put into the session
+					messages = trimListToMaxNumberOfAnnouncements(messages, state.getDisplayOptions());
+					//now put it back into the session so we can prepare the page with a correctly sorted and trimmed message list
+					sstate.setAttribute("messages", messages);
+					
 					messages = prepPage(sstate);
+					
 					sstate.setAttribute(STATE_MESSAGES, messages);
 
 					menu_delete = false;
@@ -1527,13 +1550,13 @@ public class AnnouncementAction extends PagedResourceActionII
 		{
 			Collections.reverse(messageList);
 		}
-
+		
 		// Apply any necessary list truncation.
 		messageList = getViewableMessages(messageList, ToolManager.getCurrentPlacement().getContext());
 		
-		messageList = trimListToMaxNumberOfAnnouncements(messageList, state.getDisplayOptions());
-		MaxNoOfAnn=messageList.size();
-
+		
+		
+		
 		return messageList;
 	}
 
@@ -1623,7 +1646,7 @@ public class AnnouncementAction extends PagedResourceActionII
 
 			// We need to go backwards through the list, limiting it to the number
 			// of announcements that we're allowed to display.
-			for (int i = messageList.size() - 1, curAnnouncementCount = 0; i >= 0 && curAnnouncementCount < numberOfAnnouncements; i--)
+			for (int i = 0, curAnnouncementCount = 0; i < messageList.size() && curAnnouncementCount < numberOfAnnouncements; i++)
 			{
 				AnnouncementMessage message = (AnnouncementMessage) messageList.get(i);
 
@@ -1785,22 +1808,52 @@ public class AnnouncementAction extends PagedResourceActionII
 		// Set date
 		AnnouncementMessageEdit edit = state.getEdit();
 
+		//set release date
 		if (tempReleaseDate != null)
 		{
-			context.put("date", tempReleaseDate);
+			context.put("releaseDate", tempReleaseDate);
 		}
 		else
 		{
 			Time releaseDate = null;
 			try {
 				releaseDate = edit.getProperties().getTimeProperty(AnnouncementService.RELEASE_DATE);
-				context.put("date", releaseDate);
+				context.put("releaseDate", releaseDate);
 			} 
 			catch (Exception e) {
 				// not set so set switch appropriately
-				context.put("date", TimeService.newTime());
+				context.put("releaseDate", TimeService.newTime());
 			} 
 		}
+		
+		//set retract date
+		if (tempRetractDate != null)
+		{
+			context.put("retractDate", tempRetractDate);
+		}
+		else
+		{
+			Time retractDate = null;
+			try {
+				retractDate = edit.getProperties().getTimeProperty(AnnouncementService.RETRACT_DATE);
+				context.put("retractDate", retractDate);
+			} 
+			catch (Exception e) {
+				// not set so set switch appropriately
+				context.put("retractDate", TimeService.newTime());
+			} 
+		}
+		
+		//set modified date
+		Time modDate = null;
+		try {
+			modDate = edit.getProperties().getTimeProperty(AnnouncementService.MOD_DATE);
+			context.put("modDate", modDate);
+		} 
+		catch (Exception e) {
+			// not set so set switch appropriately
+			context.put("modDate", TimeService.newTime());
+		} 
 		
 		List attachments = state.getAttachments();
 		context.put("attachments", attachments);
@@ -2213,15 +2266,45 @@ public class AnnouncementAction extends PagedResourceActionII
 			// get the message object through service
 			AnnouncementMessage message = channel.getAnnouncementMessage(this.getMessageIDFromReference(messageReference));
 
-			// put release date into context if set. otherwise, put current date
+			// put release date into context if set.
 			try {
 				Time releaseDate = message.getProperties().getTimeProperty(AnnouncementService.RELEASE_DATE);
-				
-				context.put("date", releaseDate);
+				context.put("releaseDate", releaseDate);
 			} 
 			catch (Exception e) {
-				// no release date, put in current time
-				context.put("date", TimeService.newTime());
+				// no release date, ignore
+				if (M_log.isDebugEnabled()) {
+					M_log.debug("buildShowMetadataContext releaseDate is empty for message id " + message.getId());
+				}
+			}
+			
+			try {
+				Time retractDate = message.getProperties().getTimeProperty(AnnouncementService.RETRACT_DATE);
+				context.put("retractDate", retractDate);
+			} 
+			catch (Exception e) {
+				// no retract date, ignore
+				if (M_log.isDebugEnabled()) {
+					M_log.debug("buildShowMetadataContext retractDate is empty for message id " + message.getId());
+				}
+			}
+			
+			try {
+				Time modDate = message.getProperties().getTimeProperty(AnnouncementService.MOD_DATE);
+				context.put("modDate", modDate);
+			} 
+			catch (Exception e) {
+				// no modified date is available
+				// this can happen as SAK-21071 added the MOD_DATE property
+				// as long as the release date is not set, it is safe to grab the date from the msg header
+				Time releaseDate = null;
+				try {
+					releaseDate = message.getProperties().getTimeProperty(AnnouncementService.RELEASE_DATE);
+				}
+				catch (Exception ee) {
+					// this means there is no release date, so it is safe to get the modDate from the message header
+					context.put("modDate", message.getHeader().getDate());
+				}
 			}
 			
 			context.put("message", message);
@@ -2809,9 +2892,50 @@ public class AnnouncementAction extends PagedResourceActionII
 				header.setSubject(subject);
 				
 				//set the order of the announcement messages
-				MaxNoOfAnn=MaxNoOfAnn+1;
-				header.setMessage_order(MaxNoOfAnn);
-				//msg.getPropertiesEdit().addProperty("MESSAGE_ORDER", "22");
+				// for example, if this was MESSAGE_ORDER=5 and now becomes MESSAGE_ORDER=12, 
+				// we should be modifying the database records for 5-12 and decrementing their message order
+				int oldMessageOrder = header.getMessage_order();
+				List<Message> channelMessages = channel.getMessages(null, true); // ascending order
+				//need to clear the message cache otherwise channel.getMessages stores the old (unsaved) message in cache
+				AnnouncementService.clearMessagesCache(channel.getReference());
+				
+				
+				// sort the messages by current sort order
+				SortedIterator messSorted = new SortedIterator(channelMessages.iterator(), new AnnouncementComparator(getCurrentOrder(), true));
+				
+				int runningCount = 1;
+				while (messSorted.hasNext()) {	
+					AnnouncementMessageEdit ame = (AnnouncementMessageEdit) messSorted.next();
+					AnnouncementMessageHeaderEdit amhe = ame.getAnnouncementHeaderEdit();
+					int currentOrder = amhe.getMessage_order();
+					
+					// do not attempt to double modify our existing message
+					// skipping will also make sure our runningCount does *not* increment
+					if (ame.getId().equals(msg.getId())) {
+						continue;
+					}
+					
+					// only edit the message if we need to modify the order
+					if (currentOrder != runningCount) {
+						amhe.setMessage_order(runningCount);
+						channel.commitMessage_order(ame);
+						
+						if (M_log.isDebugEnabled()) {
+							M_log.debug("postOrSaveDraft modifying order: " + ame.getId() + ":" 
+									+ currentOrder + ":" + runningCount + ":" + oldMessageOrder);
+						}
+					}	
+
+					// this max should be correct because we just went through all messages in channel in ascending order
+					runningCount++;
+				}
+				
+				// set the message order for our current message to be max
+				header.setMessage_order(runningCount);
+				
+				if (M_log.isDebugEnabled()) {
+					M_log.debug("postOrSaveDraft set message order for " + msg.getId() + " to running count " + runningCount);
+				}
 				
 //				header.setDraft(!post);
 				// v2.4: Hidden in UI becomes Draft 'behind the scenes'
@@ -2839,15 +2963,17 @@ public class AnnouncementAction extends PagedResourceActionII
 					
 					releaseDate = TimeService.newTimeLocal(begin_year, begin_month, begin_day, begin_hour, begin_min, 0, 0);
 
-					//SAK-18641: yorkadam, set release date property, also set Date to curr Date, to maintain Date sort
+					// in addition to setting release date property, also set Date to release date so properly sorted
 					msg.getPropertiesEdit().addProperty(AnnouncementService.RELEASE_DATE, releaseDate.toString());
-					header.setDate(TimeService.newTime());
+					// this date is important as the message-api will pick up on it and create a delayed event if in future
+					// the delayed event will then notify() to send the message at the proper time
+					header.setDate(releaseDate);
 				}
 				else if (tempReleaseDate != null) // saving from Preview page
 				{
-					//SAK-18641: yorkadam, set release date property, also set Date to curr Date, to maintain Date sort
+					// in addition to setting release date property, also set Date to release date so properly sorted
 					msg.getPropertiesEdit().addProperty(AnnouncementService.RELEASE_DATE, tempReleaseDate.toString());
-					header.setDate(TimeService.newTime());					
+					header.setDate(tempReleaseDate);					
 				}
 				else
 				{
@@ -2878,12 +3004,15 @@ public class AnnouncementAction extends PagedResourceActionII
 				}
 				else 
 				{
-					// they are not using release date so remove
+					// they are not using retract date so remove
 					if (msg.getProperties().getProperty(AnnouncementService.RETRACT_DATE) != null) 
 					{
 							msg.getPropertiesEdit().removeProperty(AnnouncementService.RETRACT_DATE);
 					}
 				}
+				
+				//modified date
+				msg.getPropertiesEdit().addProperty(AnnouncementService.MOD_DATE, TimeService.newTime().toString());
 				
 				//announceTo
 				Placement placement = ToolManager.getCurrentPlacement();
@@ -2993,9 +3122,9 @@ public class AnnouncementAction extends PagedResourceActionII
 			state.setMessageReference("");
 			state.setTempAnnounceTo(null);
 			state.setTempAnnounceToGroups(null);
-			state.setCurrentSortedBy(SORT_MESSAGE_ORDER);
+			state.setCurrentSortedBy(getCurrentOrder());
 			//state.setCurrentSortAsc(Boolean.TRUE.booleanValue());
-			sstate.setAttribute(STATE_CURRENT_SORTED_BY, SORT_MESSAGE_ORDER);
+			sstate.setAttribute(STATE_CURRENT_SORTED_BY, getCurrentOrder());
 			sstate.setAttribute(STATE_CURRENT_SORT_ASC, state.getCurrentSortAsc());
 
 			// make sure auto-updates are enabled
@@ -3551,9 +3680,9 @@ public class AnnouncementAction extends PagedResourceActionII
 		state.setStatus(CANCEL_STATUS);
 		state.setTempAnnounceTo(null);
 		state.setTempAnnounceToGroups(null);
-		state.setCurrentSortedBy(SORT_MESSAGE_ORDER);
+		state.setCurrentSortedBy(getCurrentOrder());
 		//state.setCurrentSortAsc(Boolean.TRUE.booleanValue());
-		sstate.setAttribute(STATE_CURRENT_SORTED_BY, SORT_MESSAGE_ORDER);
+		sstate.setAttribute(STATE_CURRENT_SORTED_BY, getCurrentOrder());
 		//sstate.setAttribute(STATE_CURRENT_SORT_ASC, Boolean.FALSE);
 
 		sstate.setAttribute(STATE_CURRENT_SORT_ASC, state.getCurrentSortAsc());
@@ -3783,15 +3912,51 @@ public class AnnouncementAction extends PagedResourceActionII
 			}
 			else if (m_criteria.equals(SORT_DATE))
 			{
-				// sorted by the discussion message date
-				if (((AnnouncementMessage) o1).getAnnouncementHeader().getDate().before(
-						((AnnouncementMessage) o2).getAnnouncementHeader().getDate()))
+
+				Time o1ModDate = null;
+				Time o2ModDate = null;
+				
+				try
 				{
-					result = -1;
+					o1ModDate = ((AnnouncementMessage) o1).getProperties().getTimeProperty(AnnouncementService.MOD_DATE);
+				}
+				catch (Exception e) 
+				{
+					// release date not set, use the date in header 
+					// NOTE: this is an edge use case for courses with pre-existing announcements that do not yet have MOD_DATE
+					o1ModDate = ((AnnouncementMessage) o1).getHeader().getDate();
+				}
+
+				try 
+				{
+					o2ModDate = ((AnnouncementMessage) o2).getProperties().getTimeProperty(AnnouncementService.MOD_DATE);
+				}
+				catch (Exception e) 
+				{
+					// release date not set, use the date in the header
+					// NOTE: this is an edge use case for courses with pre-existing announcements that do not yet have MOD_DATE
+					o2ModDate = ((AnnouncementMessage) o2).getHeader().getDate();
+				}
+
+				if (o1ModDate != null && o2ModDate != null) 
+				{
+					// sorted by the discussion message date
+					if (o1ModDate.before(o2ModDate))
+					{
+						result = -1;
+					}
+					else
+					{
+						result = 1;
+					}
+				}
+				else if (o1ModDate == null)
+				{
+					return 1;
 				}
 				else
 				{
-					result = 1;
+					return -1;
 				}
 			}
 			else if (m_criteria.equals(SORT_MESSAGE_ORDER))
@@ -4522,6 +4687,7 @@ public class AnnouncementAction extends PagedResourceActionII
 			if (messageReferences2 != null)
 			{
 				Vector v2 = new Vector();
+				int j= messageReferences2.length;
 				for (int i = 0; i < messageReferences2.length; i++)
 				{
 					// get the message object through service
@@ -4535,7 +4701,7 @@ public class AnnouncementAction extends PagedResourceActionII
 								.getMessageIDFromReference(messageReferences2[i]));
 						AnnouncementMessageEdit msg =(AnnouncementMessageEdit)message2;
 						AnnouncementMessageHeaderEdit header2 = msg.getAnnouncementHeaderEdit();
-						header2.setMessage_order(i+1);						
+						header2.setMessage_order(j--);						
 						channel2.commitMessage_order(msg);
 
 						//v2.addElement(message2);
@@ -4750,8 +4916,7 @@ public class AnnouncementAction extends PagedResourceActionII
 
 		if ((sortedBy == null) || sortedBy.equals(""))
 		{
-			//sortedBy = "message order";
-			sortedBy="message_order";
+			sortedBy= getCurrentOrder();
 			asc = false;
 		}
 		SortedIterator rvSorted = new SortedIterator(rv.iterator(), new AnnouncementComparator(sortedBy, asc));
