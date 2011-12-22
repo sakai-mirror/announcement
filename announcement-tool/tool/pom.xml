@@ -36,6 +36,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>sakai-announcement-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.sakaiproject.courier</groupId>
