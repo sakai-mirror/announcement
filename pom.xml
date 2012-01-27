@@ -29,9 +29,9 @@
     </properties>
 
     <scm>
-        <connection>scm:svn:https://source.sakaiproject.org/svn/announcement/branches/announcement-2.9.x</connection>
-        <developerConnection>scm:svn:https://source.sakaiproject.org/svn/announcement/branches/announcement-2.9.x</developerConnection>
-        <url>https://source.sakaiproject.org/svn/announcement/branches/announcement-2.9.x</url>
+        <connection>scm:svn:https://source.sakaiproject.org/svn/announcement/branches/announcement-2.9.0-b02</connection>
+        <developerConnection>scm:svn:https://source.sakaiproject.org/svn/announcement/branches/announcement-2.9.0-b02</developerConnection>
+        <url>https://source.sakaiproject.org/svn/announcement/branches/announcement-2.9.0-b02</url>
     </scm>
 
     <distributionManagement>
