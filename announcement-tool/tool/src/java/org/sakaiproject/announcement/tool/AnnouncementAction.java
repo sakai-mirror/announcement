@@ -22,6 +22,7 @@
 package org.sakaiproject.announcement.tool;
 
 import java.util.ArrayList;
+import java.util.Vector;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -1442,7 +1443,7 @@ public class AnnouncementAction extends PagedResourceActionII
 	private List getMessages(AnnouncementChannel defaultChannel, Filter filter, boolean ascending, AnnouncementActionState state,
 			VelocityPortlet portlet) throws PermissionException
 	{
-		List messageList = new ArrayList();
+		List messageList = new Vector();
 
 		MergedList mergedAnnouncementList = new MergedList();
 
