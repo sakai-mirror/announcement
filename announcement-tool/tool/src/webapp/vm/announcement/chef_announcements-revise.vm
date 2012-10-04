@@ -1,4 +1,4 @@
-## $Header: /cvs/sakai2/legacy/tools/src/webapp/vm/announcement/chef_announcements-revise.vm,v 1.4 2005/05/15 04:54:19 gsilver.umich.edu Exp $ 
+# # $Header: /cvs/sakai2/legacy/tools/src/webapp/vm/announcement/chef_announcements-revise.vm,v 1.4 2005/05/15 04:54:19 gsilver.umich.edu Exp $ 
 
 ############################################# Date selection widget macro end
 ##
@@ -164,13 +164,13 @@ function resizeFrame(){
 			$tlang.getString("revise.revise")
 		#end
 	</h3>
-	#if ($alertMessage)<div class="alertMessage">$tlang.getFormattedMessage("gen.alert.message", $validator.escapeHtml($alertMessage))</div><div class="clear"></div>#end
+	#if ($alertMessage)<div class="alertMessage">$tlang.getString("gen.alert") $validator.escapeHtml($alertMessage)</div><div class="clear"></div>#end
 	<div class="indnt1">
 		<p class="instruction">
 				#if ( $newAnn =="true")
-					$tlang.getString("revise.complete")<br /><br /> $tlang.getString("revise.required.star")
+					$tlang.getString("revise.complete")<br /><br /> $tlang.getString("revise.required") <span class="reqStarInline">*</span>
 				#else
-					$tlang.getString("revise.update") <br /><br /> $tlang.getString("revise.required.star")
+					$tlang.getString("revise.update") <br /><br /> $tlang.getString("revise.required") <span class="reqStarInline">*</span>
 				#end
 		</p>
 	</div>	
@@ -192,7 +192,7 @@ function resizeFrame(){
 			</p>
 			<div class="longtext">
 				<label for="body" class="block">
-					$tlang.getString("revise.announcement.star")
+					<span class="reqStar">*</span>$tlang.getString("revise.announcement")
 				</label>
 				<table border="0" cellpadding="0" cellspacing="0" >
 					<tr>
