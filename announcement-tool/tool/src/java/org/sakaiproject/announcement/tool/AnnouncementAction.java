@@ -1083,11 +1083,9 @@ public class AnnouncementAction extends PagedResourceActionII
 				menu_delete = channel.allowRemoveMessage(message);
 				menu_revise = channel.allowEditMessage(message.getId());
 			} catch (IdUnusedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				M_log.error(e);
 			} catch (PermissionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				M_log.error(e);
 			}
 
 		}
@@ -1776,8 +1774,7 @@ public class AnnouncementAction extends PagedResourceActionII
 			context.put("annToGroups", allGroupString);
 			
 		} catch (IdUnusedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			M_log.error(e1);
 		}
 		}
 		
@@ -4741,11 +4738,9 @@ public class AnnouncementAction extends PagedResourceActionII
 					}
 				}
 				} catch (PermissionException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					M_log.error(e1);
 				} catch (IdUnusedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					M_log.error(e1);
 				}
 			}
 		}
