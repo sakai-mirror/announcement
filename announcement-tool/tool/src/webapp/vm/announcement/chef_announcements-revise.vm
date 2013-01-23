@@ -501,7 +501,7 @@ function resizeFrame(){
 											$tlang.getString("revise.notify.short_low")
 											#set($notiEventType = 2)
 										#else
-											<span class="highlight">$tlang.getString("revise.notify.draft")</spa
+											<span class="highlight">$tlang.getString("revise.notify.draft")</span>
 											#set($notiEventType = 3)
 										#end
 									</td>
