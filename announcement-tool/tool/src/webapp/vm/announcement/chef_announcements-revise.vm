@@ -131,13 +131,13 @@ function resizeFrame(){
 		$('.showHide').click(function(){
 			if ($('.showHide:checked')){
 				$('.beginEnd').attr({checked:''});
-				$('.showHideDates').fadeOut('slow')
+				$('.showHideDates').hide();
 
 			}
 		});	
 		$('#hidden_specify').click(function(){
 			if ($('#hidden_specify:checked')){
-				$('.showHideDates').fadeIn ('slow');
+				$('.showHideDates').show();
 				resizeFrame('grow')
 				
 			}
