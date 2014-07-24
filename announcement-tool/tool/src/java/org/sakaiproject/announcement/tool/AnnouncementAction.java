@@ -35,6 +35,8 @@ import java.util.Properties;
 import java.util.Stack;
 import java.util.Vector;
 import java.text.Collator;
+import java.text.ParseException;
+import java.text.RuleBasedCollator;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -238,6 +240,10 @@ public class AnnouncementAction extends PagedResourceActionII
    private EventTrackingService eventTrackingService = null;
    
    private EntityBroker entityBroker;
+
+   private RuleBasedCollator collator_ini = (RuleBasedCollator)Collator.getInstance();
+
+   private Collator collator = Collator.getInstance();
    
    /*
 	 * Returns the current order
@@ -3872,7 +3878,16 @@ public class AnnouncementAction extends PagedResourceActionII
 	{
 		// the criteria
 		String m_criteria = null;
-
+		{
+			try
+			{
+				collator = new RuleBasedCollator(collator_ini.getRules().replaceAll("<'\u005f'", "<' '<'\u005f'"));;
+			}
+			catch (ParseException e)
+			{
+				M_log.warn(this + " Cannot init RuleBasedCollator. Will use the default Collator instead.", e);
+			}
+		}
 		// the criteria - asc
 		boolean m_asc = true;
 
@@ -3907,8 +3922,9 @@ public class AnnouncementAction extends PagedResourceActionII
 			if (m_criteria.equals(SORT_SUBJECT))
 			{
 				// sorted by the discussion message subject
-				result = Collator.getInstance().compare(((AnnouncementMessage) o1).getAnnouncementHeader().getSubject(),
-						((AnnouncementMessage) o2).getAnnouncementHeader().getSubject());
+				result = collator.compare(((AnnouncementMessage) o1).getAnnouncementHeader().getSubject(),
+						((AnnouncementMessage) o2).getAnnouncementHeader().getSubject());				
+
 			}
 			else if (m_criteria.equals(SORT_DATE))
 			{
@@ -4063,13 +4079,13 @@ public class AnnouncementAction extends PagedResourceActionII
 			else if (m_criteria.equals(SORT_FROM))
 			{
 				// sorted by the discussion message subject
-				result = Collator.getInstance().compare(((AnnouncementMessage) o1).getAnnouncementHeader().getFrom().getSortName(),
-						((AnnouncementMessage) o2).getAnnouncementHeader().getFrom().getSortName());
+				result = collator.compare(((AnnouncementMessage) o1).getAnnouncementHeader().getFrom().getSortName(),
+				((AnnouncementMessage) o2).getAnnouncementHeader().getFrom().getSortName());
 			}
 			else if (m_criteria.equals(SORT_CHANNEL))
 			{
 				// sorted by the channel name.
-				result = Collator.getInstance().compare(((AnnouncementWrapper) o1).getChannelDisplayName(),
+				result = collator.compare(((AnnouncementWrapper) o1).getChannelDisplayName(),
 						((AnnouncementWrapper) o2).getChannelDisplayName());
 			}
 			else if (m_criteria.equals(SORT_PUBLIC))
@@ -4079,21 +4095,21 @@ public class AnnouncementAction extends PagedResourceActionII
 				if (factor1 == null) factor1 = "false";
 				String factor2 = ((AnnouncementMessage) o2).getProperties().getProperty(ResourceProperties.PROP_PUBVIEW);
 				if (factor2 == null) factor2 = "false";
-				result = Collator.getInstance().compare(factor1,factor2);
+				result = collator.compare(factor1,factor2);
 			}
 			else if (m_criteria.equals(SORT_FOR))
 			{
 				// sorted by the public view attribute
 				String factor1 = ((AnnouncementWrapper) o1).getRange();
 				String factor2 = ((AnnouncementWrapper) o2).getRange();
-				result = Collator.getInstance().compare(factor1,factor2);
+				result = collator.compare(factor1,factor2);
 			}
 			else if (m_criteria.equals(SORT_GROUPTITLE))
 			{
 				// sorted by the group title
 				String factor1 = ((Group) o1).getTitle();
 				String factor2 = ((Group) o2).getTitle();
-				result = Collator.getInstance().compare(factor1,factor2);
+				result = collator.compare(factor1,factor2);
 			}
 			else if (m_criteria.equals(SORT_GROUPDESCRIPTION))
 			{
@@ -4108,7 +4124,7 @@ public class AnnouncementAction extends PagedResourceActionII
 				{
 					factor2 = "";
 				}
-				result = Collator.getInstance().compare(factor1,factor2);
+				result = collator.compare(factor1,factor2);
 			}
 
 			// sort ascending or descending
