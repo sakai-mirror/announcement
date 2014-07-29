@@ -2734,6 +2734,9 @@ public class AnnouncementAction extends PagedResourceActionII
 	 */
 	public void doAnnouncement_form(RunData data, Context context)
 	{
+		if (!"POST".equals(data.getRequest().getMethod())) {
+			return;
+		}
 
 		ParameterParser params = data.getParameters();
 
